@@ -3,7 +3,7 @@
 FairGraphBase is a benchmarking framework for fairness-aware graph neural networks.
 
 <div  align="center">    
-<img src="./docs/musubi.png" width = "600" height = "200" alt="musubi" align=center />
+<img src="./docs/musubi.png"  alt="musubi" align=center />
 </div>
 
 ## Installation
