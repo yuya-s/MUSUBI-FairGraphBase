@@ -1,0 +1,10 @@
+bind:
+    bind_del_rate: 10
+    bind_fastmode: False
+    bind_seed: 10
+    bind_epochs: 1000
+    bind_lr: 0.001
+    bind_weight_decay: 0.0001
+    bind_hidden: 16
+    bind_dropout: 0.5
+    bind_helpfulness_collection: 0    
