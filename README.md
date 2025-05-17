@@ -15,9 +15,9 @@ The FairGraphBase codebase uses the following dependencies:
 
 ## Supported Models
 - Inprocessing<br>
-Vanilla, FairGNN, NIFTY, FairSIN
+Vanilla, FairGNN ([\[WSDM 2021\]](https://arxiv.org/pdf/2009.01454.pdf)), NIFTY ([\[UAI 2021\]](https://arxiv.org/pdf/2102.13186.pdf)), FairSIN ([\[AAAI 2024\]](https://arxiv.org/pdf/2403.12474))
 - Preprocessing<br>
-Undersampling, BIND
+Undersampling, BIND ([\[AAAI 2024\]](https://arxiv.org/pdf/2211.14383))
 - Encoder<br> 
 GCN, GAT, SAGE, H2GCN
 
