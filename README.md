@@ -29,18 +29,18 @@ We support the following graphs. In our experiments, German, Google, AMiner-S, a
 |                |               #Nodes               |   #Edges   | #Features |
 | :------------: | :--------------------------------: | :--------: | :-------: |
 |   **German**   |               1,000                |   24,970   |    27     |
-|   **Bail**   |               18,876               |  642,616   |    18     |
-|   **Credit**   |               30,000               |  304,754   |    13     |
-|  **Pokec-n**   |               7,659               |  36,827   |    277    |
-|  **Pokec-z**   |               6,185               |  48,759   |    266    |
-|  **Pokec-n-Large**   |               66,569               |  1,100,663   |    266    |
-|  **Pokec-z-Large**   |               67,796               |  1,303,712   |    277    |
+|   [\[**Bail**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/bail.zip)   |               18,876               |  642,616   |    18     |
+|   [\[**Credit**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/credit.zip)   |               30,000               |  304,754   |    13     |
+|  [\[**Pokec-n**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/pokec_n.zip)   |               7,659               |  36,827   |    277    |
+|  \[**Pokec-z**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/pokec_z.zip)   |               6,185               |  48,759   |    266    |
+|  [\[**Pokec-n-Large**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/pokec_n_large.zip)   |               66,569               |  1,100,663   |    266    |
+|  [\[**Pokec-z-Large**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/pokec_z_large.zip)   |               67,796               |  1,303,712   |    277    |
 |  **Google**+   |              290,468               |   3,601    |   2,532   |
 |  **AMiner-S**  |               39,424               |   52,460   |   5,694   |
 |  **AMiner-L**  |              129,726               |  591,039   |   5,694   |
-|  **YAGO**  |              127,752               |  349,942   |   114   |
-|  **DBpedia**   |              152,035               |   426,851    |   478   |
-|  **Wikidata**  |               1,108,347               |   4,857,725   |   415   |
+|  [\[**YAGO**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/yago.zip)  |              127,752               |  349,942   |   114   |
+|  [\[**DBpedia**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/dbpedia.zip)   |              152,035               |   426,851    |   478   |
+|  [\[**Wikidata**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/wikidata.zip)  |               1,108,347               |   4,857,725   |   415   |
 
 
 ## Argument options
