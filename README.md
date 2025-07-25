@@ -16,11 +16,13 @@ The FairGraphBase codebase uses the following dependencies:
 
 ## Supported Models for group fairness
 - Inprocessing<br>
-Vanilla, FairGNN ([\[WSDM 2021\]](https://arxiv.org/pdf/2009.01454.pdf)), NIFTY ([\[UAI 2021\]](https://arxiv.org/pdf/2102.13186.pdf)), FairSIN ([\[AAAI 2024\]](https://arxiv.org/pdf/2403.12474))
+Vanilla, FairDrop ([\[TAI 2021\]](https://arxiv.org/pdf/2104.14210)), FairGNN ([\[WSDM 2021\]](https://arxiv.org/pdf/2009.01454.pdf)), NIFTY ([\[UAI 2021\]](https://arxiv.org/pdf/2102.13186.pdf)), FairSIN ([\[AAAI 2024\]](https://arxiv.org/pdf/2403.12474))
 - Preprocessing<br>
-Undersampling, BIND ([\[AAAI 2023\]](https://arxiv.org/pdf/2211.14383))
+Undersampling, FairDrop ([\[TAI 2021\]](https://arxiv.org/pdf/2104.14210)) ,BIND ([\[AAAI 2023\]](https://arxiv.org/pdf/2211.14383))
 - Encoder<br> 
 GCN, GAT, SAGE, H2GCN
+
+The difference between inprocessing and preprocessing FairDrop is dropping edges during epochs in inprocessing and dropping edges once before starting model training in preprocessing.
 
 ## Supported graph datasets
 We support the following graphs. In our experiments, German, Google, AMiner-S, and AMiner-L were not suitable to evaluate the performance (we will investigate further).
@@ -45,8 +47,8 @@ We support the following graphs. In our experiments, German, Google, AMiner-S, a
 
 ## Argument options
 - dataset : dataset name. credit/bail/german/pokec_z/pokec_n/pokec_z_large/pokec_n_large/google/aminer_l/aminer_s/wikidata/dbpedia/yago (default=pokec_n)
-- inprocessing : inprocessing method. vanilla/fairgnn/nifty/fairsin（default=vanilla）
-- preprocessing : preprocessing method. bind/undersampling/None（default=None）
+- inprocessing : inprocessing method. vanilla/fairdrop/fairgnn/nifty/fairsin（default=vanilla）
+- preprocessing : preprocessing method. bind/fairdrop/undersampling/None（default=None）
 - encoder : backbone model. gcn/gat/sage/h2gcn
 - optimize : Run optuna if specified
 - trainsize: Train data ratio (default=0.6)
