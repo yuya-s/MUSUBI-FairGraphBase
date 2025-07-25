@@ -16,8 +16,10 @@ from methods.trainer_fairgnn import run_trial_fairgnn
 from methods.trainer_fairsin import run_trial_fairsin
 from methods.trainer_nifty import run_trial_nifty
 from methods.trainer_vanilla import run_trial_vanilla
+from methods.trainer_fairdrop import run_trial_fairdrop
 from methods.bind import run_bind
 from methods.undersampling import run_undersampling
+from methods.fairdrop import run_fairdrop
 from utils.utils import *
 warnings.filterwarnings('ignore')
 import time
@@ -33,6 +35,8 @@ def get_run_trial_func(inprocessing):
         return run_trial_fairgnn
     elif inprocessing == 'nifty':
         return run_trial_nifty
+    elif inprocessing == 'fairdrop':
+        return run_trial_fairdrop
 
 def get_run_preprocessing_func(preprocessing):
 
@@ -41,6 +45,8 @@ def get_run_preprocessing_func(preprocessing):
         return run_undersampling
     elif preprocessing == 'bind':
         return run_bind
+    elif preprocessing == 'fairdrop':
+        return run_fairdrop
 
 def run(data, args):
     # objective start
@@ -158,6 +164,24 @@ def run(data, args):
             args.drop_edge_rate_2 = trial.suggest_categorical("drop_edge_rate_2", nifty_optimize_drop_edge_rate_2)
             args.drop_feature_rate_1 = trial.suggest_categorical("drop_feature_rate_1", nifty_optimize_drop_feature_rate_1)
             args.drop_feature_rate_2 = trial.suggest_categorical("drop_feature_rate_2", nifty_optimize_drop_feature_rate_2)
+        
+        elif args.inprocessing == 'fairdrop':
+            # optimize param
+            fairdrop_optimize_hidden = params["fairdrop"]["optimize_param"]["hidden"]
+            fairdrop_optimize_gnn_layer_size = params["fairdrop"]["optimize_param"]["gnn_layer_size"]
+            fairdrop_optimize_gnn_hidden = params["fairdrop"]["optimize_param"]["gnn_hidden"]
+            fairdrop_optimize_cls_layer_size = params["fairdrop"]["optimize_param"]["cls_layer_size"]
+            fairdrop_optimize_lr = params["fairdrop"]["optimize_param"]["lr"]
+            fairdrop_optimize_weight_decay = params["fairdrop"]["optimize_param"]["weight_decay"]
+            fairdrop_optimize_delta = params["fairdrop"]["optimize_param"]["delta"]
+
+            args.hidden = trial.suggest_categorical("hidden", fairdrop_optimize_hidden)
+            args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", fairdrop_optimize_gnn_layer_size)
+            args.gnn_hidden = trial.suggest_categorical("gnn_hidden", fairdrop_optimize_gnn_hidden)
+            args.cls_layer_size = trial.suggest_categorical("cls_layer_size", fairdrop_optimize_cls_layer_size)
+            args.lr = trial.suggest_categorical("lr", fairdrop_optimize_lr)
+            args.weight_decay = trial.suggest_categorical("weight_decay", fairdrop_optimize_weight_decay)
+            args.delta = trial.suggest_categorical("delta", fairdrop_optimize_delta)
 
         t_total = time.time()
         all_metrics, best_eval_output =\
@@ -165,7 +189,9 @@ def run(data, args):
         train_time_all.append(time.time() - t_total)
 
         val_acc = all_metrics[0].acc
-
+        m = all_metrics[0]
+        composite = args.alpha * m.acc + (1 - args.alpha) * (1 - m.parity)
+        return composite
         return val_acc
     # objective end
 
@@ -309,19 +335,21 @@ def run(data, args):
 
 def main(args):
 
-    # load bind config
-    with open('config_bind.yml', 'r') as yml_b:
-        params_b = yaml.safe_load(yml_b)
+    # load preprocessing config
+    with open('config_preprocessing.yml', 'r') as yml_b:
+        params_p = yaml.safe_load(yml_b)
 
-    args.bind_del_rate = params_b["bind"]["bind_del_rate"]
-    args.bind_fastmode = params_b["bind"]["bind_fastmode"]
-    args.bind_seed = params_b["bind"]["bind_seed"]
-    args.bind_epochs = params_b["bind"]["bind_epochs"]
-    args.bind_lr = params_b["bind"]["bind_lr"]
-    args.bind_weight_decay = params_b["bind"]["bind_weight_decay"]
-    args.bind_hidden = params_b["bind"]["bind_hidden"]
-    args.bind_dropout = params_b["bind"]["bind_dropout"]
-    args.bind_helpfulness_collection = params_b["bind"]["bind_helpfulness_collection"]
+    args.bind_del_rate = params_p["bind"]["bind_del_rate"]
+    args.bind_fastmode = params_p["bind"]["bind_fastmode"]
+    args.bind_seed = params_p["bind"]["bind_seed"]
+    args.bind_epochs = params_p["bind"]["bind_epochs"]
+    args.bind_lr = params_p["bind"]["bind_lr"]
+    args.bind_weight_decay = params_p["bind"]["bind_weight_decay"]
+    args.bind_hidden = params_p["bind"]["bind_hidden"]
+    args.bind_dropout = params_p["bind"]["bind_dropout"]
+    args.bind_helpfulness_collection = params_p["bind"]["bind_helpfulness_collection"]
+
+    args.fairdrop_delta = params_p["fairdrop"]["delta"]
 
     metrics_str = args.metrics
     if args.metrics == 'alpha':
@@ -329,6 +357,8 @@ def main(args):
 
     if args.preprocessing == "bind":
         output_dir = f'output/{args.dataset}_{args.inprocessing}_{args.encoder}_{metrics_str}_{args.preprocessing}{args.bind_del_rate}'
+    elif args.preprocessing == "fairdrop":
+        output_dir = f'output/{args.dataset}_{args.inprocessing}_{args.encoder}_{metrics_str}_{args.preprocessing}{args.fairdrop_delta}'
     else:
         output_dir = f'output/{args.dataset}_{args.inprocessing}_{args.encoder}_{metrics_str}_{args.preprocessing}'
     args.output_dir = output_dir
@@ -440,8 +470,8 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, default='pokec_n')
     parser.add_argument('--optimize', action='store_true')
     parser.add_argument('--optrials', type=int, default=20)
-    parser.add_argument('--inprocessing', type=str, default='vanilla') # fairsin/vanilla/fairgnn/nifty
-    parser.add_argument('--preprocessing', type=str, default='None') # bind/undersampling/None
+    parser.add_argument('--inprocessing', type=str, default='vanilla') # fairsin/vanilla/fairgnn/nifty/fairdrop
+    parser.add_argument('--preprocessing', type=str, default='None') # bind/undersampling/fairdrop/None
     parser.add_argument('--trainsize', type=float, default=0.6)
     parser.add_argument('--valsize', type=float, default=0.2)
     parser.add_argument('--encoder', type=str, default='gcn') # gcn/gat/sage
