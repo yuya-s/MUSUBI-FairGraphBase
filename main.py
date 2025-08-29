@@ -6,6 +6,8 @@ import warnings
 import copy
 import pickle
 
+import gc
+
 import numpy as np
 import yaml
 
@@ -17,6 +19,7 @@ from methods.trainer_fairsin import run_trial_fairsin
 from methods.trainer_nifty import run_trial_nifty
 from methods.trainer_vanilla import run_trial_vanilla
 from methods.trainer_fairdrop import run_trial_fairdrop
+from methods.trainer_fairgb import run_trial_fairgb
 from methods.bind import run_bind
 from methods.undersampling import run_undersampling
 from methods.fairdrop import run_fairdrop
@@ -37,6 +40,8 @@ def get_run_trial_func(inprocessing):
         return run_trial_nifty
     elif inprocessing == 'fairdrop':
         return run_trial_fairdrop
+    elif inprocessing == 'fairgb':
+        return run_trial_fairgb
 
 def get_run_preprocessing_func(preprocessing):
 
@@ -53,146 +58,197 @@ def run(data, args):
     def objective(trial):
 
         # inprocessing select
-        run_trial = get_run_trial_func(args.inprocessing)
+        #print(f"[DEBUG] Trial {trial.number} start, GPU mem allocated:",torch.cuda.memory_allocated()/1024**3, "GB","reserved:", torch.cuda.memory_reserved()/1024**3, "GB",flush=True)
+        try:
+            run_trial = get_run_trial_func(args.inprocessing)
 
 
-        if args.inprocessing == 'fairsin':
-            # optimize param
-            fairsin_optimize_hidden = params["fairsin"]["optimize_param"]["hidden"]
-            fairsin_optimize_gnn_layer_size = params["fairsin"]["optimize_param"]["gnn_layer_size"]
-            fairsin_optimize_gnn_hidden = params["fairsin"]["optimize_param"]["gnn_hidden"]
-            fairsin_optimize_cls_layer_size = params["fairsin"]["optimize_param"]["cls_layer_size"]
-            fairsin_optimize_c_lr = params["fairsin"]["optimize_param"]["c_lr"]
-            fairsin_optimize_e_lr = params["fairsin"]["optimize_param"]["e_lr"]
-            fairsin_optimize_m_lr = params["fairsin"]["optimize_param"]["m_lr"]
-            fairsin_optimize_d_lr = params["fairsin"]["optimize_param"]["d_lr"]
-            fairsin_optimize_delta = params["fairsin"]["optimize_param"]["delta"]
-            fairsin_optimize_wd = params["fairsin"]["optimize_param"]["wd"]
-            fairsin_optimize_dropout = params["fairsin"]["optimize_param"]["dropout"]
-            # fixed param
-            fairsin_fixed_param_epochs = params["fairsin"]["fixed_param"]["epochs"]
-            fairsin_fixed_param_d_epochs = params["fairsin"]["fixed_param"]["d_epochs"]
-            fairsin_fixed_param_c_epochs = params["fairsin"]["fixed_param"]["c_epochs"]
-            fairsin_fixed_param_m_epochs = params["fairsin"]["fixed_param"]["m_epochs"]
-            fairsin_fixed_param_d = params["fairsin"]["fixed_param"]["d"]
+            if args.inprocessing == 'fairsin':
+                # optimize param
+                fairsin_optimize_hidden = params["fairsin"]["optimize_param"]["hidden"]
+                fairsin_optimize_gnn_layer_size = params["fairsin"]["optimize_param"]["gnn_layer_size"]
+                fairsin_optimize_gnn_hidden = params["fairsin"]["optimize_param"]["gnn_hidden"]
+                fairsin_optimize_cls_layer_size = params["fairsin"]["optimize_param"]["cls_layer_size"]
+                fairsin_optimize_c_lr = params["fairsin"]["optimize_param"]["c_lr"]
+                fairsin_optimize_e_lr = params["fairsin"]["optimize_param"]["e_lr"]
+                fairsin_optimize_m_lr = params["fairsin"]["optimize_param"]["m_lr"]
+                fairsin_optimize_d_lr = params["fairsin"]["optimize_param"]["d_lr"]
+                fairsin_optimize_delta = params["fairsin"]["optimize_param"]["delta"]
+                fairsin_optimize_wd = params["fairsin"]["optimize_param"]["wd"]
+                fairsin_optimize_dropout = params["fairsin"]["optimize_param"]["dropout"]
+                # fixed param
+                fairsin_fixed_param_epochs = params["fairsin"]["fixed_param"]["epochs"]
+                fairsin_fixed_param_d_epochs = params["fairsin"]["fixed_param"]["d_epochs"]
+                fairsin_fixed_param_c_epochs = params["fairsin"]["fixed_param"]["c_epochs"]
+                fairsin_fixed_param_m_epochs = params["fairsin"]["fixed_param"]["m_epochs"]
+                fairsin_fixed_param_d = params["fairsin"]["fixed_param"]["d"]
 
-            args.hidden = trial.suggest_categorical('hidden', fairsin_optimize_hidden)
-            args.gnn_layer_size = trial.suggest_categorical('gnn_layer_size', fairsin_optimize_gnn_layer_size)
-            args.gnn_hidden = trial.suggest_categorical('gnn_hidden', fairsin_optimize_gnn_hidden)
-            args.cls_layer_size = trial.suggest_categorical('cls_layer_size', fairsin_optimize_cls_layer_size)
-            args.c_lr = trial.suggest_categorical('c_lr', fairsin_optimize_c_lr)
-            args.e_lr = trial.suggest_categorical('e_lr', fairsin_optimize_e_lr)
-            args.m_lr = trial.suggest_categorical('m_lr', fairsin_optimize_m_lr)
-            args.d_lr = trial.suggest_categorical('d_lr', fairsin_optimize_d_lr)
-            args.delta = trial.suggest_categorical('delta', fairsin_optimize_delta)
-            wd = trial.suggest_categorical('wd', fairsin_optimize_wd)
-            args.dropout = trial.suggest_categorical('dropout', fairsin_optimize_dropout)
-            args.c_wd = wd
-            args.d_wd = wd
-            args.e_wd = wd
+                args.hidden = trial.suggest_categorical('hidden', fairsin_optimize_hidden)
+                args.gnn_layer_size = trial.suggest_categorical('gnn_layer_size', fairsin_optimize_gnn_layer_size)
+                args.gnn_hidden = trial.suggest_categorical('gnn_hidden', fairsin_optimize_gnn_hidden)
+                args.cls_layer_size = trial.suggest_categorical('cls_layer_size', fairsin_optimize_cls_layer_size)
+                args.c_lr = trial.suggest_categorical('c_lr', fairsin_optimize_c_lr)
+                args.e_lr = trial.suggest_categorical('e_lr', fairsin_optimize_e_lr)
+                args.m_lr = trial.suggest_categorical('m_lr', fairsin_optimize_m_lr)
+                args.d_lr = trial.suggest_categorical('d_lr', fairsin_optimize_d_lr)
+                args.delta = trial.suggest_categorical('delta', fairsin_optimize_delta)
+                wd = trial.suggest_categorical('wd', fairsin_optimize_wd)
+                args.dropout = trial.suggest_categorical('dropout', fairsin_optimize_dropout)
+                args.c_wd = wd
+                args.d_wd = wd
+                args.e_wd = wd
 
-            args.epochs = fairsin_fixed_param_epochs
-            args.d_epochs = fairsin_fixed_param_d_epochs
-            args.c_epochs = fairsin_fixed_param_c_epochs
-            args.m_epoch = fairsin_fixed_param_m_epochs
-            args.d = fairsin_fixed_param_d
+                args.epochs = fairsin_fixed_param_epochs
+                args.d_epochs = fairsin_fixed_param_d_epochs
+                args.c_epochs = fairsin_fixed_param_c_epochs
+                args.m_epoch = fairsin_fixed_param_m_epochs
+                args.d = fairsin_fixed_param_d
 
-        elif args.inprocessing == 'vanilla':
-            # optimize param
-            vanilla_optimize_hidden = params["vanilla"]["optimize_param"]["hidden"]
-            vanilla_optimize_gnn_layer_size = params["vanilla"]["optimize_param"]["gnn_layer_size"]
-            vanilla_optimize_gnn_hidden = params["vanilla"]["optimize_param"]["gnn_hidden"]
-            vanilla_optimize_cls_layer_size = params["vanilla"]["optimize_param"]["cls_layer_size"]
-            vanilla_optimize_lr = params["vanilla"]["optimize_param"]["lr"]
-            vanilla_optimize_weight_decay = params["vanilla"]["optimize_param"]["weight_decay"]
+            elif args.inprocessing == 'vanilla':
+                # optimize param
+                vanilla_optimize_hidden = params["vanilla"]["optimize_param"]["hidden"]
+                vanilla_optimize_gnn_layer_size = params["vanilla"]["optimize_param"]["gnn_layer_size"]
+                vanilla_optimize_gnn_hidden = params["vanilla"]["optimize_param"]["gnn_hidden"]
+                vanilla_optimize_cls_layer_size = params["vanilla"]["optimize_param"]["cls_layer_size"]
+                vanilla_optimize_lr = params["vanilla"]["optimize_param"]["lr"]
+                vanilla_optimize_weight_decay = params["vanilla"]["optimize_param"]["weight_decay"]
 
-            args.hidden = trial.suggest_categorical("hidden", vanilla_optimize_hidden)
-            args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", vanilla_optimize_gnn_layer_size)
-            args.gnn_hidden = trial.suggest_categorical("gnn_hidden", vanilla_optimize_gnn_hidden)
-            args.cls_layer_size = trial.suggest_categorical("cls_layer_size", vanilla_optimize_cls_layer_size)
-            args.lr = trial.suggest_categorical("lr", vanilla_optimize_lr)
-            args.weight_decay = trial.suggest_categorical("weight_decay", vanilla_optimize_weight_decay)
+                args.hidden = trial.suggest_categorical("hidden", vanilla_optimize_hidden)
+                args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", vanilla_optimize_gnn_layer_size)
+                args.gnn_hidden = trial.suggest_categorical("gnn_hidden", vanilla_optimize_gnn_hidden)
+                args.cls_layer_size = trial.suggest_categorical("cls_layer_size", vanilla_optimize_cls_layer_size)
+                args.lr = trial.suggest_categorical("lr", vanilla_optimize_lr)
+                args.weight_decay = trial.suggest_categorical("weight_decay", vanilla_optimize_weight_decay)
 
-        elif args.inprocessing == 'fairgnn':
-            # optimize param
-            fairgnn_optimize_hidden = params["fairgnn"]["optimize_param"]["hidden"]
-            fairgnn_optimize_gnn_layer_size = params["fairgnn"]["optimize_param"]["gnn_layer_size"]
-            fairgnn_optimize_gnn_hidden = params["fairgnn"]["optimize_param"]["gnn_hidden"]
-            fairgnn_optimize_cls_layer_size = params["fairgnn"]["optimize_param"]["cls_layer_size"]
-            fairgnn_optimize_acc = params["fairgnn"]["optimize_param"]["acc"]
-            fairgnn_optimize_g_alpha = params["fairgnn"]["optimize_param"]["g_alpha"]
-            fairgnn_optimize_g_beta = params["fairgnn"]["optimize_param"]["g_beta"]
-            fairgnn_optimize_proj_hidden = params["fairgnn"]["optimize_param"]["proj_hidden"]
-            fairgnn_optimize_lr = params["fairgnn"]["optimize_param"]["lr"]
-            fairgnn_optimize_weight_decay = params["fairgnn"]["optimize_param"]["weight_decay"]
+            elif args.inprocessing == 'fairgnn':
+                # optimize param
+                fairgnn_optimize_hidden = params["fairgnn"]["optimize_param"]["hidden"]
+                fairgnn_optimize_gnn_layer_size = params["fairgnn"]["optimize_param"]["gnn_layer_size"]
+                fairgnn_optimize_gnn_hidden = params["fairgnn"]["optimize_param"]["gnn_hidden"]
+                fairgnn_optimize_cls_layer_size = params["fairgnn"]["optimize_param"]["cls_layer_size"]
+                fairgnn_optimize_acc = params["fairgnn"]["optimize_param"]["acc"]
+                fairgnn_optimize_g_alpha = params["fairgnn"]["optimize_param"]["g_alpha"]
+                fairgnn_optimize_g_beta = params["fairgnn"]["optimize_param"]["g_beta"]
+                fairgnn_optimize_proj_hidden = params["fairgnn"]["optimize_param"]["proj_hidden"]
+                fairgnn_optimize_lr = params["fairgnn"]["optimize_param"]["lr"]
+                fairgnn_optimize_weight_decay = params["fairgnn"]["optimize_param"]["weight_decay"]
 
-            args.hidden = trial.suggest_categorical("hidden", fairgnn_optimize_hidden)
-            args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", fairgnn_optimize_gnn_layer_size)
-            args.gnn_hidden = trial.suggest_categorical("gnn_hidden", fairgnn_optimize_gnn_hidden)
-            args.cls_layer_size = trial.suggest_categorical("cls_layer_size", fairgnn_optimize_cls_layer_size)
-            args.acc = trial.suggest_categorical("acc", fairgnn_optimize_acc)
-            args.g_alpha = trial.suggest_categorical("g_alpha", fairgnn_optimize_g_alpha)
-            args.g_beta = trial.suggest_categorical("g_beta", fairgnn_optimize_g_beta)
-            args.proj_hidden = trial.suggest_categorical("proj_hidden", fairgnn_optimize_proj_hidden)
-            args.lr = trial.suggest_categorical("lr", fairgnn_optimize_lr)
-            args.weight_decay = trial.suggest_categorical("weight_decay", fairgnn_optimize_weight_decay)
+                args.hidden = trial.suggest_categorical("hidden", fairgnn_optimize_hidden)
+                args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", fairgnn_optimize_gnn_layer_size)
+                args.gnn_hidden = trial.suggest_categorical("gnn_hidden", fairgnn_optimize_gnn_hidden)
+                args.cls_layer_size = trial.suggest_categorical("cls_layer_size", fairgnn_optimize_cls_layer_size)
+                args.acc = trial.suggest_categorical("acc", fairgnn_optimize_acc)
+                args.g_alpha = trial.suggest_categorical("g_alpha", fairgnn_optimize_g_alpha)
+                args.g_beta = trial.suggest_categorical("g_beta", fairgnn_optimize_g_beta)
+                args.proj_hidden = trial.suggest_categorical("proj_hidden", fairgnn_optimize_proj_hidden)
+                args.lr = trial.suggest_categorical("lr", fairgnn_optimize_lr)
+                args.weight_decay = trial.suggest_categorical("weight_decay", fairgnn_optimize_weight_decay)
 
-        elif args.inprocessing == 'nifty':
-            # optimize param
-            nifty_optimize_hidden = params["nifty"]["optimize_param"]["hidden"]
-            nifty_optimize_gnn_layer_size = params["nifty"]["optimize_param"]["gnn_layer_size"]
-            nifty_optimize_gnn_hidden = params["nifty"]["optimize_param"]["gnn_hidden"]
-            nifty_optimize_cls_layer_size = params["nifty"]["optimize_param"]["cls_layer_size"]
-            nifty_optimize_num_proj_hidden = params["nifty"]["optimize_param"]["num_proj_hidden"]
-            nifty_optimize_lr = params["nifty"]["optimize_param"]["lr"]
-            nifty_optimize_weight_decay = params["nifty"]["optimize_param"]["weight_decay"]
-            nifty_optimize_sim_coeff = params["nifty"]["optimize_param"]["sim_coeff"]
-            nifty_optimize_drop_edge_rate_1 = params["nifty"]["optimize_param"]["drop_edge_rate_1"]
-            nifty_optimize_drop_edge_rate_2 = params["nifty"]["optimize_param"]["drop_edge_rate_2"]
-            nifty_optimize_drop_feature_rate_1 = params["nifty"]["optimize_param"]["drop_feature_rate_1"]
-            nifty_optimize_drop_feature_rate_2 = params["nifty"]["optimize_param"]["drop_feature_rate_2"]
+            elif args.inprocessing == 'nifty':
+                # optimize param
+                nifty_optimize_hidden = params["nifty"]["optimize_param"]["hidden"]
+                nifty_optimize_gnn_layer_size = params["nifty"]["optimize_param"]["gnn_layer_size"]
+                nifty_optimize_gnn_hidden = params["nifty"]["optimize_param"]["gnn_hidden"]
+                nifty_optimize_cls_layer_size = params["nifty"]["optimize_param"]["cls_layer_size"]
+                nifty_optimize_num_proj_hidden = params["nifty"]["optimize_param"]["num_proj_hidden"]
+                nifty_optimize_lr = params["nifty"]["optimize_param"]["lr"]
+                nifty_optimize_weight_decay = params["nifty"]["optimize_param"]["weight_decay"]
+                nifty_optimize_sim_coeff = params["nifty"]["optimize_param"]["sim_coeff"]
+                nifty_optimize_drop_edge_rate_1 = params["nifty"]["optimize_param"]["drop_edge_rate_1"]
+                nifty_optimize_drop_edge_rate_2 = params["nifty"]["optimize_param"]["drop_edge_rate_2"]
+                nifty_optimize_drop_feature_rate_1 = params["nifty"]["optimize_param"]["drop_feature_rate_1"]
+                nifty_optimize_drop_feature_rate_2 = params["nifty"]["optimize_param"]["drop_feature_rate_2"]
 
-            args.hidden = trial.suggest_categorical("hidden", nifty_optimize_hidden)
-            args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", nifty_optimize_gnn_layer_size)
-            args.gnn_hidden = trial.suggest_categorical("gnn_hidden", nifty_optimize_gnn_hidden)
-            args.cls_layer_size = trial.suggest_categorical("cls_layer_size", nifty_optimize_cls_layer_size)
-            args.num_proj_hidden = trial.suggest_categorical("num_proj_hidden", nifty_optimize_num_proj_hidden)
-            args.lr = trial.suggest_categorical("lr", nifty_optimize_lr)
-            args.weight_decay = trial.suggest_categorical("weight_decay", nifty_optimize_weight_decay)
-            args.sim_coeff = trial.suggest_categorical("sim_coeff", nifty_optimize_sim_coeff)
-            args.drop_edge_rate_1 = trial.suggest_categorical("drop_edge_rate_1", nifty_optimize_drop_edge_rate_1)
-            args.drop_edge_rate_2 = trial.suggest_categorical("drop_edge_rate_2", nifty_optimize_drop_edge_rate_2)
-            args.drop_feature_rate_1 = trial.suggest_categorical("drop_feature_rate_1", nifty_optimize_drop_feature_rate_1)
-            args.drop_feature_rate_2 = trial.suggest_categorical("drop_feature_rate_2", nifty_optimize_drop_feature_rate_2)
+                args.hidden = trial.suggest_categorical("hidden", nifty_optimize_hidden)
+                args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", nifty_optimize_gnn_layer_size)
+                args.gnn_hidden = trial.suggest_categorical("gnn_hidden", nifty_optimize_gnn_hidden)
+                args.cls_layer_size = trial.suggest_categorical("cls_layer_size", nifty_optimize_cls_layer_size)
+                args.num_proj_hidden = trial.suggest_categorical("num_proj_hidden", nifty_optimize_num_proj_hidden)
+                args.lr = trial.suggest_categorical("lr", nifty_optimize_lr)
+                args.weight_decay = trial.suggest_categorical("weight_decay", nifty_optimize_weight_decay)
+                args.sim_coeff = trial.suggest_categorical("sim_coeff", nifty_optimize_sim_coeff)
+                args.drop_edge_rate_1 = trial.suggest_categorical("drop_edge_rate_1", nifty_optimize_drop_edge_rate_1)
+                args.drop_edge_rate_2 = trial.suggest_categorical("drop_edge_rate_2", nifty_optimize_drop_edge_rate_2)
+                args.drop_feature_rate_1 = trial.suggest_categorical("drop_feature_rate_1", nifty_optimize_drop_feature_rate_1)
+                args.drop_feature_rate_2 = trial.suggest_categorical("drop_feature_rate_2", nifty_optimize_drop_feature_rate_2)
         
-        elif args.inprocessing == 'fairdrop':
-            # optimize param
-            fairdrop_optimize_hidden = params["fairdrop"]["optimize_param"]["hidden"]
-            fairdrop_optimize_gnn_layer_size = params["fairdrop"]["optimize_param"]["gnn_layer_size"]
-            fairdrop_optimize_gnn_hidden = params["fairdrop"]["optimize_param"]["gnn_hidden"]
-            fairdrop_optimize_cls_layer_size = params["fairdrop"]["optimize_param"]["cls_layer_size"]
-            fairdrop_optimize_lr = params["fairdrop"]["optimize_param"]["lr"]
-            fairdrop_optimize_weight_decay = params["fairdrop"]["optimize_param"]["weight_decay"]
-            fairdrop_optimize_delta = params["fairdrop"]["optimize_param"]["delta"]
+            elif args.inprocessing == 'fairdrop':
+                # optimize param
+                fairdrop_optimize_hidden = params["fairdrop"]["optimize_param"]["hidden"]
+                fairdrop_optimize_gnn_layer_size = params["fairdrop"]["optimize_param"]["gnn_layer_size"]
+                fairdrop_optimize_gnn_hidden = params["fairdrop"]["optimize_param"]["gnn_hidden"]
+                fairdrop_optimize_cls_layer_size = params["fairdrop"]["optimize_param"]["cls_layer_size"]
+                fairdrop_optimize_lr = params["fairdrop"]["optimize_param"]["lr"]
+                fairdrop_optimize_weight_decay = params["fairdrop"]["optimize_param"]["weight_decay"]
+                fairdrop_optimize_delta = params["fairdrop"]["optimize_param"]["delta"]
 
-            args.hidden = trial.suggest_categorical("hidden", fairdrop_optimize_hidden)
-            args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", fairdrop_optimize_gnn_layer_size)
-            args.gnn_hidden = trial.suggest_categorical("gnn_hidden", fairdrop_optimize_gnn_hidden)
-            args.cls_layer_size = trial.suggest_categorical("cls_layer_size", fairdrop_optimize_cls_layer_size)
-            args.lr = trial.suggest_categorical("lr", fairdrop_optimize_lr)
-            args.weight_decay = trial.suggest_categorical("weight_decay", fairdrop_optimize_weight_decay)
-            args.delta = trial.suggest_categorical("delta", fairdrop_optimize_delta)
+                args.hidden = trial.suggest_categorical("hidden", fairdrop_optimize_hidden)
+                args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", fairdrop_optimize_gnn_layer_size)
+                args.gnn_hidden = trial.suggest_categorical("gnn_hidden", fairdrop_optimize_gnn_hidden)
+                args.cls_layer_size = trial.suggest_categorical("cls_layer_size", fairdrop_optimize_cls_layer_size)
+                args.lr = trial.suggest_categorical("lr", fairdrop_optimize_lr)
+                args.weight_decay = trial.suggest_categorical("weight_decay", fairdrop_optimize_weight_decay)
+                args.delta = trial.suggest_categorical("delta", fairdrop_optimize_delta)
 
-        t_total = time.time()
-        all_metrics, best_eval_output =\
-            run_trial(data, args, args.trial_count)
-        train_time_all.append(time.time() - t_total)
+            elif args.inprocessing == 'fairgb':
+                # optimize param
+                fairgb_optimize_hidden = params["fairgb"]["optimize_param"]["hidden"]
+                fairgb_optimize_gnn_layer_size = params["fairgb"]["optimize_param"]["gnn_layer_size"]
+                fairgb_optimize_gnn_hidden = params["fairgb"]["optimize_param"]["gnn_hidden"]
+                fairgb_optimize_cls_layer_size = params["fairgb"]["optimize_param"]["cls_layer_size"]
+                fairgb_optimize_e_lr = params["fairgb"]["optimize_param"]["e_lr"]
+                fairgb_optimize_c_lr = params["fairgb"]["optimize_param"]["c_lr"]
+                fairgb_optimize_wd = params["fairgb"]["optimize_param"]["wd"]
+                fairgb_optimize_eta = params["fairgb"]["optimize_param"]["eta"]
+                fairgb_optimize_warmup = params["fairgb"]["optimize_param"]["warmup"]
 
-        val_acc = all_metrics[0].acc
-        m = all_metrics[0]
-        composite = args.alpha * m.acc + (1 - args.alpha) * (1 - m.parity)
-        return composite
-        return val_acc
+                args.hidden = trial.suggest_categorical("hidden", fairgb_optimize_hidden)
+                args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", fairgb_optimize_gnn_layer_size)
+                args.gnn_hidden = trial.suggest_categorical("gnn_hidden", fairgb_optimize_gnn_hidden)
+                args.cls_layer_size = trial.suggest_categorical("cls_layer_size", fairgb_optimize_cls_layer_size)
+                args.e_lr = trial.suggest_categorical("e_lr", fairgb_optimize_e_lr)
+                args.c_lr = trial.suggest_categorical("c_lr", fairgb_optimize_c_lr)
+                args.wd = trial.suggest_categorical("wd", fairgb_optimize_wd)
+                args.eta = trial.suggest_categorical("eta", fairgb_optimize_eta)
+                args.warmup = trial.suggest_categorical("warmup", fairgb_optimize_warmup)
+
+            t_total = time.time()
+            all_metrics, best_eval_output =\
+                run_trial(data, args, args.trial_count)
+            train_time_all.append(time.time() - t_total)
+
+            
+            if args.metrics == "acc":
+                val_acc = all_metrics[0].acc
+                del all_metrics, best_eval_output
+                gc.collect()
+                torch.cuda.empty_cache()
+                return val_acc
+            elif args.metrics == "f1":
+                val_f1 = all_metrics[0].f1
+                del all_metrics, best_eval_output
+                gc.collect()
+                torch.cuda.empty_cache()
+                return val_f1
+            elif args.metrics =="alpha":
+                composite = all_metrics[0].acc + all_metrics[0].f1 -  args.alpha * (all_metrics[0].parity + all_metrics[0].equality)
+                del all_metrics, best_eval_output
+                gc.collect()
+                torch.cuda.empty_cache()
+                return composite
+
+        except torch.cuda.OutOfMemoryError:
+            gc.collect()
+            torch.cuda.empty_cache()
+            print("OutOfMemory")
+            return float(0)
+
+        finally:
+            gc.collect()
+            torch.cuda.empty_cache()
+
+       # return composite
+       # return val_acc
     # objective end
 
     trial_count = tqdm(range(args.runs), unit='run')
@@ -230,7 +286,7 @@ def run(data, args):
         data = data.to(args.device)
 
         # load config
-        with open('config.yml', 'r') as yml:
+        with open('config_inprocessing.yml', 'r') as yml:
             params = yaml.safe_load(yml)
 
 
@@ -238,7 +294,7 @@ def run(data, args):
         if args.optimize:
             # optimize
             study = optuna.create_study(direction='maximize', sampler=optuna.samplers.TPESampler(seed=42))
-            study.optimize(objective, n_trials=args.optrials) # optrials=20
+            study.optimize(objective, n_trials=args.optrials, n_jobs=1) # optrials=20
 
             print('Trial:', tr, 'Number of finished study:', len(study.trials))
             print('Trial:', tr, 'Best param:', study.best_trial.params)
@@ -325,8 +381,8 @@ def run(data, args):
         # GPU Usage
         pf = platform.system()
         gpu_usage = 0
-        #if pf != 'Windows':
-        #    gpu_usage = float(get_gpu_info()[args.gpu_no]['memory.used'])
+        if pf != 'Windows':
+            gpu_usage = float(get_gpu_info()[args.gpu_no]['memory.used'])
 
         all_trial_metrics.append([all_metrics[1], gpu_usage, np.mean(train_time_all), main_total_time, best_output])
 
