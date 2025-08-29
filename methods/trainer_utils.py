@@ -45,7 +45,7 @@ class Early_stopper:
         elif self.metrics == 'alpha':
             check_val = F1s['val'] + accs['val'] - self.alpha * (paritys['val'] + equalitys['val'])
 
-        if check_val > self.best_val_tradeoff:
+        if check_val >= self.best_val_tradeoff:
             self.test_acc = accs['test']
             self.test_auc_roc = auc_rocs['test']
             self.test_f1 = F1s['test']
@@ -56,6 +56,10 @@ class Early_stopper:
             self.best_epoc = self.epoch
             self.best_output = output
         else:
+            #print(self.early_stop_count)
+            #print(check_val)
+            #print(self.best_val_tradeoff)
+
             self.early_stop_count += 1
             if self.early_stop_count >= self.stop_count:
                 return True

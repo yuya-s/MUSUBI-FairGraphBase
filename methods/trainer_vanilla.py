@@ -72,7 +72,7 @@ def run_trial_vanilla(data, args, trial=1):
             val_loss = F.binary_cross_entropy_with_logits(c_val[val_mask],
                                                           labels[val_mask].unsqueeze(1).float().to(
                                                               device))
-
+            
             if epoch % 100 == 0:
                 print(f"[Train] Epoch {epoch}: train_c_loss: {cl_loss:.4f} | val_c_loss: {val_loss:.4f}")
 
