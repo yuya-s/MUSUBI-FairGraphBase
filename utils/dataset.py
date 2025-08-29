@@ -268,8 +268,11 @@ def load_german(args, dataset, runs):
     label_number = 1000
 
     german_file = os.path.join(path, "german.csv")
+    
+
     if not os.path.exists(german_file):
         url = "https://raw.githubusercontent.com/PyGDebias-Team/data/main/2023-7-26/german/german.csv"
+        os.makedirs(path)
         download(url, german_file)
 
     idx_features_labels = pd.read_csv(german_file)
@@ -789,7 +792,122 @@ def get_dataset(dataname, runs, args):
         norm_features = feature_norm(features)
         features = norm_features
 
+    # BIND
+    # if args.preprocessing == "bind":
+    #     new_adj_list = []
+    #     new_features_list = []
+    #     new_edge_index_list = []
+    #     new_adj_norm_sp_list = []
+    #     new_labels_list = []
+    #     new_train_mask_list = []
+    #     new_val_mask_list = []
+    #     new_test_bask_list = []
+    #     new_sens_list = []
+    #
+    #     if not os.path.exists(f"data/{dataname}/newfeatures_{args.preprocessing}_del{args.bind_del_rate}_0.pt"):
+    #         for trial in range(runs):
+    #
+    #             # (BIND) bind_train.py
+    #             train_bind(trial, args, dataname, adj, features, labels, idx_trains[trial], idx_vals[trial],
+    #                        idx_tests[trial], sens,
+    #                        need_norm_features=False)
+    #
+    #             # (BIND) bind_influence_computate.py
+    #             compute_influence_bind(trial, args, dataname, adj, features, labels, idx_trains[trial], idx_vals[trial],
+    #                                    idx_tests[trial], sens,
+    #                                    need_norm_features=False)
+    #
+    #             # (BIND) bind_remove.py
+    #             newadj, newfeatures, newlabels, newidx_train, newidx_val, newidx_test, newsens \
+    #                 = remove_bind(trial, args, dataname, adj, features, labels, idx_trains[trial], idx_vals[trial],
+    #                               idx_tests[trial], sens,
+    #                               need_norm_features=False, bind_del_rate=args.bind_del_rate)
+    #
+    #             newtrain_mask = index_to_mask(len(newlabels), torch.LongTensor(newidx_train))
+    #             newval_mask = index_to_mask(len(newlabels), torch.LongTensor(newidx_val))
+    #             newtest_mask = index_to_mask(len(newlabels), torch.LongTensor(newidx_test))
+    #
+    #             newadj_norm = sys_normalized_adjacency(newadj)
+    #             newadj_norm_sp = sparse_mx_to_torch_sparse_tensor(newadj_norm)
+    #             newedge_index, _ = from_scipy_sparse_matrix(newadj)
+    #
+    #
+    #             torch.save(newfeatures,
+    #                        f"data/{dataname}/newfeatures_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #
+    #             torch.save(newedge_index,
+    #                        f"data/{dataname}/newedge_index_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #
+    #             torch.save(newlabels,
+    #                        f"data/{dataname}/newlabels_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #
+    #             torch.save(newtrain_mask,
+    #                        f"data/{dataname}/newtrain_mask_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #
+    #             torch.save(newval_mask,
+    #                        f"data/{dataname}/newval_mask_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #
+    #             torch.save(newtest_mask,
+    #                        f"data/{dataname}/newtest_mask_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #
+    #             torch.save(newsens,
+    #                        f"data/{dataname}/newsens_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #
+    #             new_adj_list.append(newadj)
+    #             new_features_list.append(newfeatures)
+    #             new_edge_index_list.append(newedge_index)
+    #             new_adj_norm_sp_list.append(newadj_norm_sp)
+    #             new_labels_list.append(newlabels)
+    #             new_train_mask_list.append(newtrain_mask)
+    #             new_val_mask_list.append(newval_mask)
+    #             new_test_bask_list.append(newtest_mask)
+    #             new_sens_list.append(newsens)
+    #
+    #     else:
+    #         for trial in range(runs):
+    #             newfeatures = torch.load(f"data/{dataname}/newfeatures_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #             newedge_index = torch.load(f"data/{dataname}/newedge_index_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #             newlabels = torch.load(f"data/{dataname}/newlabels_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #             newtrain_mask = torch.load(f"data/{dataname}/newtrain_mask_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #             newval_mask = torch.load(f"data/{dataname}/newval_mask_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #             newtest_mask = torch.load(f"data/{dataname}/newtest_mask_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #             newsens = torch.load(f"data/{dataname}/newsens_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
+    #
+    #             newedge_index_np = newedge_index.cpu().numpy()
+    #             newlabels_np = newlabels.cpu().numpy()
+    #
+    #             adj = sp.coo_matrix((np.ones(newedge_index_np.shape[1]), (newedge_index_np[0, :], newedge_index_np[1, :])),
+    #                                 shape=(newlabels_np.shape[0], newlabels_np.shape[0]),
+    #                                 dtype=np.float32)
+    #
+    #             adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj)
+    #             adj = adj + sp.eye(adj.shape[0])
+    #             adj_norm = sys_normalized_adjacency(adj)
+    #             adj_norm_sp = sparse_mx_to_torch_sparse_tensor(adj_norm)
+    #             newadj = adj
+    #             newadj_norm_sp = adj_norm_sp
+    #
+    #             new_adj_list.append(newadj)
+    #             new_features_list.append(newfeatures)
+    #             new_edge_index_list.append(newedge_index)
+    #             new_adj_norm_sp_list.append(newadj_norm_sp)
+    #             new_labels_list.append(newlabels)
+    #             new_train_mask_list.append(newtrain_mask)
+    #             new_val_mask_list.append(newval_mask)
+    #             new_test_bask_list.append(newtest_mask)
+    #             new_sens_list.append(newsens)
+    #
+    #
+    #     return Data(adj=adj, x=features, edge_index=edge_index, adj_norm_sp=adj_norm_sp, y=labels.float(),
+    #                 train_mask=new_train_mask_list, val_mask=new_val_mask_list, test_mask=new_test_bask_list, sens=sens,
+    #                 adj_list = new_adj_list, x_list = new_features_list, edge_index_list = new_edge_index_list,
+    #                 adj_norm_sp_list = new_adj_norm_sp_list, y_list = new_labels_list, sens_list = new_sens_list
+    #                 ), sens_idx, x_min, x_max
+
+    #else:
     return Data(adj=adj, x=features, edge_index=edge_index, adj_norm_sp=adj_norm_sp, y=labels.float(),
                     train_mask=train_mask, val_mask=val_mask, test_mask=test_mask, sens=sens, dataset=dataname
                     ), sens_idx, x_min, x_max
-
+#train_bind(trial, args, dataname, adj, features, labels, idx_trains[trial], idx_vals[trial],
+    #                        idx_tests[trial], sens,
+    #                        need_norm_features=False)
