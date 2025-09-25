@@ -25,8 +25,7 @@ GCN, GAT, SAGE, H2GCN
 The difference between inprocessing and preprocessing FairDrop is dropping edges during epochs in inprocessing and dropping edges once before starting model training in preprocessing.
 
 ## Supported graph datasets
-We support the following graphs. In our experiments, German, Google, AMiner-S, and AMiner-L were not suitable to evaluate the performance (we will investigate further).
-
+We support the following graphs.
 
 |                |               #Nodes               |   #Edges   | #Features |
 | :------------: | :--------------------------------: | :--------: | :-------: |
