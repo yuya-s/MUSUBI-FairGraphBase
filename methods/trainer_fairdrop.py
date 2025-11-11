@@ -22,7 +22,10 @@ def run_trial_fairdrop(data, args, trial=1):
 
     labels = data.y.to(device)
     edge_index  = data.edge_index.to(device)
-    features = data.x.to(device)
+    features = data.x
+    features = features.to(device)           
+    counter_features = args.counter_features
+    counter_features = counter_features.to(device)
     train_mask=data.train_mask[trial-1].to(device)
     val_mask = data.val_mask[trial-1].to(device)
     test_mask = data.test_mask[trial-1].to(device)
@@ -81,10 +84,12 @@ def run_trial_fairdrop(data, args, trial=1):
                                                           labels[val_mask].unsqueeze(1).float().to(
                                                               device))
 
+            counter_c_val = model(counter_features, edge_index)
+
             if epoch % 100 == 0:
                 print(f"[Train] Epoch {epoch}: train_c_loss: {cl_loss:.4f} | val_c_loss: {val_loss:.4f}")
 
-            if early_stopper.check_stop(c_val, data):
+            if early_stopper.check_stop(c_val, counter_c_val, data):
                 break
 
             end_time = time.time()

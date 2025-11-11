@@ -22,6 +22,9 @@ def run_trial_vanilla(data, args, trial=1):
     labels = data.y
     edge_index  = data.edge_index
     features = data.x
+    features = features.to(device)           
+    counter_features = args.counter_features
+    counter_features = counter_features.to(device)
     train_mask=data.train_mask[trial-1]
     val_mask = data.val_mask[trial-1]
     test_mask = data.test_mask[trial-1]
@@ -55,28 +58,27 @@ def run_trial_vanilla(data, args, trial=1):
             sim_loss = 0
             model.train()
             optimizer_2.zero_grad()
-            edge_index_1 = edge_index
-            x_1 = features
 
-            c1 = model(x_1, edge_index_1)
-
+            c1 = model(features, edge_index)                    
             cl_loss = F.binary_cross_entropy_with_logits(c1[train_mask],
                                                          labels[train_mask].unsqueeze(1).float().to(
-                                                             device))
-
-            cl_loss.backward()
+                                                              device))        
+            cl_loss.backward()         
             optimizer_2.step()
 
             model.eval()
-            c_val = model(features, edge_index)
-            val_loss = F.binary_cross_entropy_with_logits(c_val[val_mask],
-                                                          labels[val_mask].unsqueeze(1).float().to(
-                                                              device))
-            
-            if epoch % 100 == 0:
-                print(f"[Train] Epoch {epoch}: train_c_loss: {cl_loss:.4f} | val_c_loss: {val_loss:.4f}")
+            c_val = model(features, edge_index)                         
+            counter_c_val = model(counter_features, edge_index)                                             
 
-            if early_stopper.check_stop(c_val, data):
+            val_loss = F.binary_cross_entropy_with_logits(c_val[val_mask],
+                                                           labels[val_mask].unsqueeze(1).float().to(
+                                                               device))
+                          
+            if epoch % 100 == 0:
+               print(f"[Train] Epoch {epoch}: train_c_loss: {cl_loss:.4f} | val_c_loss: {val_loss:.4f}")
+
+
+            if early_stopper.check_stop(c_val, counter_c_val, data):
                 break
 
             end_time = time.time()

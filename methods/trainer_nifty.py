@@ -27,6 +27,7 @@ def run_trial_nifty(data, args, trial=1):
 
     edge_index = data.edge_index
     features = data.x
+    counter_features = args.counter_features
     labels = data.y
 
     train_mask=data.train_mask[trial-1]
@@ -40,9 +41,8 @@ def run_trial_nifty(data, args, trial=1):
 
     val_edge_index_1 = dropout_edge(edge_index.to(device), p=drop_edge_rate_1)[0]
     val_edge_index_2 = dropout_edge(edge_index.to(device), p=drop_edge_rate_2)[0]
-    sens_idx = -1
-    val_x_1 = drop_feature(features.to(device), drop_feature_rate_1, sens_idx, sens_flag=False)
-    val_x_2 = drop_feature(features.to(device), drop_feature_rate_2, sens_idx)
+    val_x_1 = drop_feature(features.to(device), counter_features.to(device), drop_feature_rate_1, args.sens_idx, sens_flag=False)
+    val_x_2 = drop_feature(features.to(device), counter_features.to(device), drop_feature_rate_2, args.sens_idx)
 
     model = NIFTY_GAT(
                     seed = int(args.seed + trial),
@@ -81,10 +81,17 @@ def run_trial_nifty(data, args, trial=1):
                 model.train()
                 optimizer_1.zero_grad()
                 optimizer_2.zero_grad()
-                edge_index_1 = dropout_edge(edge_index, p=drop_edge_rate_1)[0]
-                edge_index_2 = dropout_edge(edge_index, p=drop_edge_rate_2)[0]
-                x_1 = drop_feature(features, drop_feature_rate_1, sens_idx, sens_flag=False)
-                x_2 = drop_feature(features, drop_feature_rate_2, sens_idx)
+
+                edge_index_1 = dropout_edge(edge_index, p=args.drop_edge_rate_1)[0] 
+                edge_index_2 = dropout_edge(edge_index, p=args.drop_edge_rate_2)[0] 
+                x_1 = drop_feature(features, counter_features, args.drop_feature_rate_1, args.sens_idx, sens_flag=False) 
+                x_2 = drop_feature(features, counter_features, args.drop_feature_rate_2, args.sens_idx) 
+
+                edge_index_1 = edge_index_1.to(device)
+                edge_index_2 = edge_index_2.to(device) 
+                x_1 = x_1.to(device)
+                x_2 = x_2.to(device)
+
                 z1 = model.forward(x_1, edge_index_1)
                 z2 = model.forward(x_2, edge_index_2)
 
@@ -119,8 +126,11 @@ def run_trial_nifty(data, args, trial=1):
             model.eval()
             emb = model.forward(val_x_1, val_edge_index_1)
             output = model.classifier(emb)
+            
+            counter_emb = model.forward(val_x_2, val_edge_index_2)
+            counter_output = model.classifier(counter_emb)
 
-            if early_stopper.check_stop(output, data):
+            if early_stopper.check_stop(output, counter_output, data):
                 break
 
             end_time = time.time()
@@ -131,19 +141,22 @@ def run_trial_nifty(data, args, trial=1):
     return all_metrics, early_stopper.best_output
 
 
-def drop_feature(x, drop_prob, sens_idx, sens_flag=True):
+def drop_feature(x, counter_x, drop_prob, sens_idx, sens_flag=True):    
+    
     drop_mask = torch.empty(
         (x.size(1), ),
         dtype=torch.float32,
         device=x.device).uniform_(0, 1) < drop_prob
+    
+    if(sens_flag):
+        x = counter_x.clone()
+    else:
+        x = x.clone()
+    
+    if(sens_idx != None):    
+        drop_mask[sens_idx] = False
 
-    x = x.clone()
-    drop_mask[sens_idx] = False
-
-    x[:, drop_mask] += torch.ones(1).normal_(0, 1).to(x.device)
-
-    if sens_flag:
-        x[:, sens_idx] = 1-x[:, sens_idx]
+    x[:, drop_mask.to(x.device)] += torch.ones(1).normal_(0, 1).to(x.device)
 
     return x
 

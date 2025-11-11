@@ -12,27 +12,35 @@ from utils.utils import get_gpu_info, params_count
 
 
 def run_trial_fairgnn(data, args, trial=1):
-    features = data.x
+    features = data.x       
+    counter_features = args.counter_features
     labels = data.y
     edge_index = data.edge_index
     train_mask = data.train_mask[trial-1]
     val_mask = data.val_mask[trial-1]
     test_mask = data.test_mask[trial-1]
     sens = data.sens
-    idx_sens_train = data.train_mask[trial-1]
+    sens_mask = (sens == 0) | (sens == 1) 
+    idx_sens_train = data.train_mask[trial-1] & sens_mask
+    idx_sens_val = data.val_mask[trial-1] & sens_mask
 
     device = args.device
 
     if idx_sens_train is None:
         idx_sens_train = train_mask
+    if idx_sens_val is None:
+        idx_sens_train = train_mask     
+           
     features = features.to(device)
+    counter_features = counter_features.to(device)
     labels = labels.to(device)
     edge_index = edge_index.to(device)
     train_mask = train_mask.to(device)
     val_mask = val_mask.to(device)
     sens = sens.to(device)
     idx_sens_train = idx_sens_train.to(device)
-
+    idx_sens_val = idx_sens_val.to(device)
+    
     model = FairGNN_ALL(
                     encoder=args.encoder,
                     nfeat=features.shape[1],
@@ -48,16 +56,10 @@ def run_trial_fairgnn(data, args, trial=1):
     model.to(device)
     adv.to(device)
 
-    t_total = time.time()
-    best_fair = 1000
     best_acc = 0
-
-    x = features
-
-    val_loss = 0
     early_stopping_count = 0
 
-    best_val_tradeoff = -100
+    t_total = time.time()
 
     params_num = params_count(model)
     early_stopper = Early_stopper(20, args.metrics, args.alpha, trial, params_num)
@@ -70,6 +72,9 @@ def run_trial_fairgnn(data, args, trial=1):
 
         G_params = model.get_gparams()
 
+        optimizer_E = torch.optim.Adam(
+            model.parameters(), lr=args.lr, weight_decay=args.weight_decay   
+        )
         optimizer_G = torch.optim.Adam(
             G_params, lr=args.lr, weight_decay=args.weight_decay
         )
@@ -77,6 +82,30 @@ def run_trial_fairgnn(data, args, trial=1):
             adv.parameters(), lr=args.lr, weight_decay=args.weight_decay
         )
         criterion = nn.BCEWithLogitsLoss()
+
+
+        for epoch in tqdm(range(args.epochs)):
+            model.estimator.train()
+            optimizer_E.zero_grad()
+            output = model.estimator(features, edge_index)
+            loss_train = criterion(output[idx_sens_train], sens[idx_sens_train].unsqueeze(1).float())
+            loss_train.backward()
+            optimizer_E.step()
+
+            model.eval()
+            output = model.estimator(features, edge_index)
+            acc_val = accuracy(output[idx_sens_val], sens[idx_sens_val])
+            
+            if(acc_val > best_acc):
+                best_acc = acc_val         
+                best_estimater_params = model.estimator.state_dict()
+                early_stopping_count = 0
+            else:            
+                early_stopping_count += 1
+                if(early_stopping_count >= 20):
+                    break
+            
+        model.estimator.load_state_dict(best_estimater_params)
 
         for epoch in tqdm(range(args.epochs)):
             start_time = time.time()
@@ -91,9 +120,9 @@ def run_trial_fairgnn(data, args, trial=1):
             model.eval()
 
             _, _,output = model(edge_index, features)
+            _, _,counter_output = model(edge_index, counter_features)
 
-
-            if early_stopper.check_stop(output, data):
+            if early_stopper.check_stop(output, counter_output, data):
                 break
 
             end_time = time.time()
@@ -144,3 +173,10 @@ def optimize(args, model, adv, x, labels, idx_train, sens, idx_sens_train, edge_
     A_loss = criterion(s_g, s_score)
     A_loss.backward()
     optimizer_A.step()
+
+def accuracy(output, labels):
+    output = output.squeeze()
+    preds = (output>0).type_as(labels)
+    correct = preds.eq(labels).double()
+    correct = correct.sum()
+    return correct / len(labels)

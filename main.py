@@ -20,6 +20,9 @@ from methods.trainer_nifty import run_trial_nifty
 from methods.trainer_vanilla import run_trial_vanilla
 from methods.trainer_fairdrop import run_trial_fairdrop
 from methods.trainer_fairgb import run_trial_fairgb
+from methods.trainer_fairgt import run_trial_fairgt
+from methods.trainer_constraint_sgc import run_trial_constraint_sgc
+from methods.trainer_constraint_vanilla import run_trial_constraint_vanilla
 from methods.bind import run_bind
 from methods.undersampling import run_undersampling
 from methods.fairdrop import run_fairdrop
@@ -42,6 +45,12 @@ def get_run_trial_func(inprocessing):
         return run_trial_fairdrop
     elif inprocessing == 'fairgb':
         return run_trial_fairgb
+    elif inprocessing == 'fairgt':
+        return run_trial_fairgt
+    elif inprocessing == 'constraint_sgc':
+        return run_trial_constraint_sgc
+    elif inprocessing == 'constraint_vanilla':
+        return run_trial_constraint_vanilla
 
 def get_run_preprocessing_func(preprocessing):
 
@@ -211,6 +220,76 @@ def run(data, args):
                 args.wd = trial.suggest_categorical("wd", fairgb_optimize_wd)
                 args.eta = trial.suggest_categorical("eta", fairgb_optimize_eta)
                 args.warmup = trial.suggest_categorical("warmup", fairgb_optimize_warmup)
+              
+            elif args.inprocessing == 'fairgt':
+                # optimize param
+                fairgt_optimize_hidden = params["fairgt"]["optimize_param"]["hidden"]
+                fairgt_optimize_n_layers = params["fairgt"]["optimize_param"]["n_layers"]
+                fairgt_optimize_n_heads = params["fairgt"]["optimize_param"]["n_heads"]                
+                fairgt_optimize_pe_dim = params["fairgt"]["optimize_param"]["pe_dim"]     
+                fairgt_optimize_cliques = params["fairgt"]["optimize_param"]["cliques"]  
+                fairgt_optimize_hops = params["fairgt"]["optimize_param"]["hops"]                  
+                fairgt_optimize_cls_layer_size = params["fairgt"]["optimize_param"]["cls_layer_size"]
+                fairgt_optimize_lr = params["fairgt"]["optimize_param"]["lr"]
+                fairgt_optimize_weight_decay = params["fairgt"]["optimize_param"]["weight_decay"]
+                fairgt_optimize_dropout = params["fairgt"]["optimize_param"]["dropout"]
+
+                args.hidden = trial.suggest_categorical("hidden", fairgt_optimize_hidden)
+                args.n_layers = trial.suggest_categorical("n_layers", fairgt_optimize_n_layers)
+                args.n_heads = trial.suggest_categorical("n_heads", fairgt_optimize_n_heads)
+                args.pe_dim = trial.suggest_categorical("pe_dim", fairgt_optimize_pe_dim)
+                args.cliques = trial.suggest_categorical("cliques", fairgt_optimize_cliques)
+                args.hops = trial.suggest_categorical("hops", fairgt_optimize_hops)
+                args.cls_layer_size = trial.suggest_categorical("cls_layer_size", fairgt_optimize_cls_layer_size)
+                args.lr = trial.suggest_categorical("lr", fairgt_optimize_lr)
+                args.weight_decay = trial.suggest_categorical("weight_decay", fairgt_optimize_weight_decay)
+                args.dropout = trial.suggest_categorical('dropout', fairgt_optimize_dropout)                       
+
+            elif args.inprocessing == 'constraint_sgc':
+                # optimize param
+                constraint_sgc_optimize_lr = params["constraint_sgc"]["optimize_param"]["lr"]
+                constraint_sgc_optimize_weight_decay = params["constraint_sgc"]["optimize_param"]["weight_decay"]
+                constraint_sgc_optimize_degree = params["constraint_sgc"]["optimize_param"]["degree"]
+                constraint_sgc_optimize_sp_tolerance = params["constraint_sgc"]["optimize_param"]["sp_tolerance"]
+                constraint_sgc_optimize_eo_tolerance = params["constraint_sgc"]["optimize_param"]["eo_tolerance"]
+                constraint_sgc_optimize_cf_tolerance = params["constraint_sgc"]["optimize_param"]["cf_tolerance"]
+                constraint_sgc_optimize_penalty_factor = params["constraint_sgc"]["optimize_param"]["penalty_factor"]  
+                constraint_sgc_optimize_update_weight = params["constraint_sgc"]["optimize_param"]["update_weight"]                    
+
+                args.lr = trial.suggest_categorical("lr", constraint_sgc_optimize_lr)
+                args.weight_decay = trial.suggest_categorical("weight_decay", constraint_sgc_optimize_weight_decay)
+                args.degree = trial.suggest_categorical('degree', constraint_sgc_optimize_degree)  
+                args.sp_tolerance = trial.suggest_categorical("sp_tolerance", constraint_sgc_optimize_sp_tolerance)
+                args.eo_tolerance = trial.suggest_categorical("eo_tolerance", constraint_sgc_optimize_eo_tolerance)
+                args.cf_tolerance = trial.suggest_categorical("cf_tolerance", constraint_sgc_optimize_cf_tolerance)
+                args.penalty_factor = trial.suggest_categorical("penalty_factor", constraint_sgc_optimize_penalty_factor)
+                args.update_weight = trial.suggest_categorical("update_weight", constraint_sgc_optimize_update_weight)  
+
+            elif args.inprocessing == 'constraint_vanilla':
+                # optimize param
+                constraint_vanilla_optimize_hidden = params["constraint_vanilla"]["optimize_param"]["hidden"]
+                constraint_vanilla_optimize_gnn_layer_size = params["constraint_vanilla"]["optimize_param"]["gnn_layer_size"]
+                constraint_vanilla_optimize_gnn_hidden = params["constraint_vanilla"]["optimize_param"]["gnn_hidden"]
+                constraint_vanilla_optimize_cls_layer_size = params["constraint_vanilla"]["optimize_param"]["cls_layer_size"]
+                constraint_vanilla_optimize_lr = params["constraint_vanilla"]["optimize_param"]["lr"]
+                constraint_vanilla_optimize_weight_decay = params["constraint_vanilla"]["optimize_param"]["weight_decay"]
+                constraint_vanilla_optimize_sp_tolerance = params["constraint_vanilla"]["optimize_param"]["sp_tolerance"]
+                constraint_vanilla_optimize_eo_tolerance = params["constraint_vanilla"]["optimize_param"]["eo_tolerance"]
+                constraint_vanilla_optimize_cf_tolerance = params["constraint_vanilla"]["optimize_param"]["cf_tolerance"]
+                constraint_vanilla_optimize_penalty_factor = params["constraint_vanilla"]["optimize_param"]["penalty_factor"]  
+                constraint_vanilla_optimize_update_weight = params["constraint_vanilla"]["optimize_param"]["update_weight"]                
+                
+                args.hidden = trial.suggest_categorical("hidden", constraint_vanilla_optimize_hidden)
+                args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", constraint_vanilla_optimize_gnn_layer_size)
+                args.gnn_hidden = trial.suggest_categorical("gnn_hidden", constraint_vanilla_optimize_gnn_hidden)
+                args.cls_layer_size = trial.suggest_categorical("cls_layer_size", constraint_vanilla_optimize_cls_layer_size)
+                args.lr = trial.suggest_categorical("lr", constraint_vanilla_optimize_lr)
+                args.weight_decay = trial.suggest_categorical("weight_decay", constraint_vanilla_optimize_weight_decay)
+                args.sp_tolerance = trial.suggest_categorical("sp_tolerance", constraint_vanilla_optimize_sp_tolerance)
+                args.eo_tolerance = trial.suggest_categorical("eo_tolerance", constraint_vanilla_optimize_eo_tolerance)
+                args.cf_tolerance = trial.suggest_categorical("cf_tolerance", constraint_vanilla_optimize_cf_tolerance)
+                args.penalty_factor = trial.suggest_categorical("penalty_factor", constraint_vanilla_optimize_penalty_factor)
+                args.update_weight = trial.suggest_categorical("update_weight", constraint_vanilla_optimize_update_weight)   
 
             t_total = time.time()
             all_metrics, best_eval_output =\
@@ -231,7 +310,7 @@ def run(data, args):
                 torch.cuda.empty_cache()
                 return val_f1
             elif args.metrics =="alpha":
-                composite = all_metrics[0].acc + all_metrics[0].f1 -  args.alpha * (all_metrics[0].parity + all_metrics[0].equality)
+                composite = all_metrics[0].acc + all_metrics[0].f1 -  args.alpha * (all_metrics[0].parity + all_metrics[0].equality + all_metrics[0].counterfactual_fairness)
                 del all_metrics, best_eval_output
                 gc.collect()
                 torch.cuda.empty_cache()
@@ -371,6 +450,62 @@ def run(data, args):
             args.drop_edge_rate_2 = hparams['drop_edge_rate_2']
             args.drop_feature_rate_1 = hparams['drop_feature_rate_1']
             args.drop_feature_rate_2 = hparams['drop_feature_rate_2']
+ 
+        elif args.inprocessing == 'fairdrop':
+            args.hidden = hparams['hidden']
+            args.gnn_layer_size = hparams['gnn_layer_size']
+            args.gnn_hidden = hparams['gnn_hidden']
+            args.cls_layer_size = hparams['cls_layer_size']
+            args.lr = hparams['lr']                        
+            args.weight_decay = hparams['weight_decay']
+            args.delta = hparams['delta']     
+                        
+        elif args.inprocessing == 'fairgb':
+            args.hidden = hparams['hidden']
+            args.gnn_layer_size = hparams['gnn_layer_size']
+            args.gnn_hidden = hparams['gnn_hidden']
+            args.cls_layer_size = hparams['cls_layer_size']
+            args.e_lr = hparams['e_lr']   
+            args.c_lr = hparams['c_lr']            
+            args.wd = hparams['wd']         
+            args.eta = hparams['eta']
+            args.warmup = hparams['warmup']
+             
+        elif args.inprocessing == 'fairgt':
+            args.hidden = hparams['hidden']
+            args.n_layers = hparams['n_layers']
+            args.n_heads = hparams['n_heads']
+            args.cls_layer_size = hparams['cls_layer_size']
+            args.lr = hparams['lr']
+            args.weight_decay = hparams['weight_decay']
+            args.dropout = hparams['dropout']
+            args.hops = hparams['hops']
+            args.pe_dim = hparams['pe_dim']
+            args.cliques = hparams['cliques']     
+            
+        elif args.inprocessing == 'constraint_sgc':
+            args.lr = hparams['lr']
+            args.weight_decay = hparams['weight_decay']
+            args.degree = hparams['degree']
+            args.weight_decay = hparams['weight_decay']            
+            args.sp_tolerance = hparams['sp_tolerance']  
+            args.eo_tolerance = hparams['eo_tolerance']  
+            args.cf_tolerance = hparams['cf_tolerance']  
+            args.penalty_factor = hparams['penalty_factor']  
+            args.update_weight = hparams['update_weight']                 
+            
+        elif args.inprocessing == 'constraint_vanilla':
+            args.hidden = hparams['hidden']
+            args.gnn_layer_size = hparams['gnn_layer_size']
+            args.gnn_hidden = hparams['gnn_hidden']
+            args.cls_layer_size = hparams['cls_layer_size']
+            args.lr = hparams['lr']
+            args.weight_decay = hparams['weight_decay']            
+            args.sp_tolerance = hparams['sp_tolerance']  
+            args.eo_tolerance = hparams['eo_tolerance']  
+            args.cf_tolerance = hparams['cf_tolerance']  
+            args.penalty_factor = hparams['penalty_factor']  
+            args.update_weight = hparams['update_weight']                     
 
         t_total = time.time()
         all_metrics, best_output = run_trial(data, args, args.trial_count)
@@ -430,7 +565,7 @@ def main(args):
 
     fix_seed(42)
 
-    data, args.sens_idx, args.x_min, args.x_max = get_dataset(args.dataset, args.runs, args)
+    data, args.sens_idx, args.x_min, args.x_max, args.counter_features = get_dataset(args.dataset, args.runs, args)
     args.num_features, args.num_classes = data.x.shape[1], 2-1 # binary classes are 0,1
 
     all_trial_metrics = run(data, args)
@@ -447,23 +582,24 @@ def main(args):
         else:
             writer.writerow([''])
         writer.writerow([''])
-        writer.writerow(['no', 'ACC', 'AUC', 'F1', 'SP', 'EO', 'GPU Usage', 'Parameter Num', 'Train time', 'Total time'])
-        accs, aucs, f1s, paritys, equalitys, acc_sens0s, auc_sens0s, f1_sens0s, acc_sens1s, auc_sens1s, f1_sens1s,\
+        writer.writerow(['no', 'ACC', 'AUC', 'F1', 'SP', 'EO', 'CF', 'GPU Usage', 'Parameter Num', 'Train time', 'Total time'])
+        accs, aucs, f1s, paritys, equalitys, counterfactual_fairness, acc_sens0s, auc_sens0s, f1_sens0s, acc_sens1s, auc_sens1s, f1_sens1s,\
             gpu_usages, parameter_nums, train_times, total_times = \
-            [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+            [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
         for i, trial_metrics in enumerate(all_trial_metrics):
             metrics = trial_metrics[0]
             gpu_usage = trial_metrics[1]
             train_time = trial_metrics[2]
             total_time = trial_metrics[3]
             writer.writerow(
-                [(i+1), metrics.acc, metrics.auc, metrics.f1, metrics.parity, metrics.equality, gpu_usage,
+                [(i+1), metrics.acc, metrics.auc, metrics.f1, metrics.parity, metrics.equality, metrics.counterfactual_fairness, gpu_usage,
                  metrics.model_param_cnt, train_time, total_time])
             accs.append(metrics.acc)
             aucs.append(metrics.auc)
             f1s.append(metrics.f1)
             paritys.append(metrics.parity)
             equalitys.append(metrics.equality)
+            counterfactual_fairness.append(metrics.counterfactual_fairness)
             acc_sens0s.append(metrics.acc_sens0)
             auc_sens0s.append(metrics.auc_sens0)
             f1_sens0s.append(metrics.f1_sens0)
@@ -482,6 +618,7 @@ def main(args):
              f"{np.round(np.mean(f1s)*100, decimals=2)} +- {np.round(np.var(f1s)*100, decimals=2)}",
              f"{np.round(np.mean(paritys)*100, decimals=2)} +- {np.round(np.var(paritys)*100, decimals=2)}",
              f"{np.round(np.mean(equalitys)*100, decimals=2)} +- {np.round(np.var(equalitys)*100, decimals=2)}",
+             f"{np.round(np.mean(counterfactual_fairness)*100, decimals=2)} +- {np.round(np.var(counterfactual_fairness)*100, decimals=2)}",             
              np.mean(gpu_usages), np.mean(parameter_nums), np.mean(train_times), np.mean(total_times)])
 
         for i, trial_metrics in enumerate(all_trial_metrics):

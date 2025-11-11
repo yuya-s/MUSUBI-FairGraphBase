@@ -21,6 +21,7 @@ def run_trial_fairgb(data, args, trial=1):
     orig_n = data.x.size(0)
     device = args.device
     features = data.x
+    counter_features = args.counter_features
     n_cls = data.y.max().int().item() + 1
     n_sen = data.sens.max().int().item() + 1
     index_list = torch.arange(len(data.y)).to(args.device)
@@ -123,8 +124,10 @@ def run_trial_fairgb(data, args, trial=1):
 
             with torch.no_grad():
                 h = model.encoder(data.x[:orig_n], data.edge_index)   
-                clean_val_out = model.c1(h)
-            if early_stopper.check_stop(clean_val_out, data):
+                clean_val_out = model.c1(h)                
+                counter_h = model.encoder(counter_features.to(device), data.edge_index)
+                counter_clean_val_out = model.c1(counter_h)                                  
+            if early_stopper.check_stop(clean_val_out, counter_clean_val_out, data):
                 break
     all_metrics = early_stopper.get_all_metrics(data)
 
@@ -238,7 +241,7 @@ def get_ins_neighbor_dist(num_nodes, edge_index, device):
     
     neighbor_dist_list = []
     for j in tqdm(range(num_nodes)):
-        neighbor_dist = torch.zeros(num_nodes, dtype=torch.float32)
+        neighbor_dist = torch.zeros(num_nodes, dtype=torch.float32).to(device)
         idx = row[(col == j)]
         neighbor_dist[idx] += 1
         neighbor_dist_list.append(neighbor_dist)

@@ -13,6 +13,7 @@ from torch_geometric.data import Data
 import torch
 import scipy.sparse as sp
 import requests
+from utils.change_sens import flip_sens
 
 
 def download(url: str, filename: str):
@@ -99,7 +100,7 @@ def index_to_mask(node_num, index):
 
 def sys_normalized_adjacency(adj):
     adj = sp.coo_matrix(adj)
-    adj = adj + sp.eye(adj.shape[0])
+    # adj = adj + sp.eye(adj.shape[0])　#引数adjは関数適用前に自己ループ追加されているので不要？
     row_sum = np.array(adj.sum(1))
     row_sum = (row_sum == 0) * 1 + row_sum
     d_inv_sqrt = np.power(row_sum, -0.5).flatten()
@@ -154,6 +155,7 @@ def load_credit(args, dataset, runs):
 
     credit_file = os.path.join(path, "credit.csv")
     if not os.path.exists(credit_file):
+        os.makedirs(path)        
         url = "https://raw.githubusercontent.com/PyGDebias-Team/data/main/2023-7-26/credit/credit.csv"
         download(url, credit_file)
 
@@ -214,6 +216,7 @@ def load_bail(args, dataset, runs):
     bail_file = os.path.join(path, "bail.csv")
     if not os.path.exists(bail_file):
         url = "https://raw.githubusercontent.com/PyGDebias-Team/data/main/2023-7-26/bail/bail.csv"
+        os.makedirs(path)        
         download(url, bail_file)
 
     idx_features_labels = pd.read_csv(bail_file)
@@ -741,6 +744,8 @@ def load_yago(args, dataset, runs=5):
 
     sens = torch.FloatTensor(sens)
 
+    features = torch.cat([features, sens.unsqueeze(-1)], -1)
+
     return adj_norm_sp, edge_index, features, labels, train_masks, val_masks, test_masks, sens, adj, idx_trains, idx_vals, idx_tests
 
 
@@ -780,17 +785,27 @@ def get_dataset(dataname, runs, args):
         sens_idx = 1
     elif(dataname == 'bail' or dataname == 'german'):
         sens_idx = 0
-    elif(dataname == 'region_job' or dataname == 'region_job_2'):
+    # elif(dataname == 'region_job' or dataname == 'region_job_2'):
+    elif(dataname == 'pokec_n' or dataname == 'pokec_z'):
         sens_idx = 3
+    elif(dataname == 'pokec_n_large' or dataname == 'pokec_z_large' or dataname.startswith('yago')):
+        sens_idx = -1
     else:
         sens_idx = None
 
+    if(sens_idx == None):
+        counter_features = features
+    else:
+        counter_features = flip_sens(features, sens_idx)
+   
     x_max, x_min = torch.max(features, dim=0)[
         0], torch.min(features, dim=0)[0]
 
     if(dataname != 'german'):
         norm_features = feature_norm(features)
-        features = norm_features
+        features = norm_features        
+        counter_norm_features = feature_norm(counter_features)
+        counter_features = counter_norm_features
 
     # BIND
     # if args.preprocessing == "bind":
@@ -907,7 +922,7 @@ def get_dataset(dataname, runs, args):
     #else:
     return Data(adj=adj, x=features, edge_index=edge_index, adj_norm_sp=adj_norm_sp, y=labels.float(),
                     train_mask=train_mask, val_mask=val_mask, test_mask=test_mask, sens=sens, dataset=dataname
-                    ), sens_idx, x_min, x_max
+                    ), sens_idx, x_min, x_max, counter_features
 #train_bind(trial, args, dataname, adj, features, labels, idx_trains[trial], idx_vals[trial],
     #                        idx_tests[trial], sens,
     #                        need_norm_features=False)
