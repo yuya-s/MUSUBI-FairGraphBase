@@ -100,7 +100,7 @@ def index_to_mask(node_num, index):
 
 def sys_normalized_adjacency(adj):
     adj = sp.coo_matrix(adj)
-    # adj = adj + sp.eye(adj.shape[0])　#引数adjは関数適用前に自己ループ追加されているので不要？
+    # adj = adj + sp.eye(adj.shape[0])
     row_sum = np.array(adj.sum(1))
     row_sum = (row_sum == 0) * 1 + row_sum
     d_inv_sqrt = np.power(row_sum, -0.5).flatten()
@@ -926,3 +926,4 @@ def get_dataset(dataname, runs, args):
 #train_bind(trial, args, dataname, adj, features, labels, idx_trains[trial], idx_vals[trial],
     #                        idx_tests[trial], sens,
     #                        need_norm_features=False)
+
