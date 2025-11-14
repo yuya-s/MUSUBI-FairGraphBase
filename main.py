@@ -21,8 +21,6 @@ from methods.trainer_vanilla import run_trial_vanilla
 from methods.trainer_fairdrop import run_trial_fairdrop
 from methods.trainer_fairgb import run_trial_fairgb
 from methods.trainer_fairgt import run_trial_fairgt
-from methods.trainer_constraint_sgc import run_trial_constraint_sgc
-from methods.trainer_constraint_vanilla import run_trial_constraint_vanilla
 from methods.bind import run_bind
 from methods.undersampling import run_undersampling
 from methods.fairdrop import run_fairdrop
@@ -47,10 +45,6 @@ def get_run_trial_func(inprocessing):
         return run_trial_fairgb
     elif inprocessing == 'fairgt':
         return run_trial_fairgt
-    elif inprocessing == 'constraint_sgc':
-        return run_trial_constraint_sgc
-    elif inprocessing == 'constraint_vanilla':
-        return run_trial_constraint_vanilla
 
 def get_run_preprocessing_func(preprocessing):
 
@@ -245,52 +239,6 @@ def run(data, args):
                 args.weight_decay = trial.suggest_categorical("weight_decay", fairgt_optimize_weight_decay)
                 args.dropout = trial.suggest_categorical('dropout', fairgt_optimize_dropout)                       
 
-            elif args.inprocessing == 'constraint_sgc':
-                # optimize param
-                constraint_sgc_optimize_lr = params["constraint_sgc"]["optimize_param"]["lr"]
-                constraint_sgc_optimize_weight_decay = params["constraint_sgc"]["optimize_param"]["weight_decay"]
-                constraint_sgc_optimize_degree = params["constraint_sgc"]["optimize_param"]["degree"]
-                constraint_sgc_optimize_sp_tolerance = params["constraint_sgc"]["optimize_param"]["sp_tolerance"]
-                constraint_sgc_optimize_eo_tolerance = params["constraint_sgc"]["optimize_param"]["eo_tolerance"]
-                constraint_sgc_optimize_cf_tolerance = params["constraint_sgc"]["optimize_param"]["cf_tolerance"]
-                constraint_sgc_optimize_penalty_factor = params["constraint_sgc"]["optimize_param"]["penalty_factor"]  
-                constraint_sgc_optimize_update_weight = params["constraint_sgc"]["optimize_param"]["update_weight"]                    
-
-                args.lr = trial.suggest_categorical("lr", constraint_sgc_optimize_lr)
-                args.weight_decay = trial.suggest_categorical("weight_decay", constraint_sgc_optimize_weight_decay)
-                args.degree = trial.suggest_categorical('degree', constraint_sgc_optimize_degree)  
-                args.sp_tolerance = trial.suggest_categorical("sp_tolerance", constraint_sgc_optimize_sp_tolerance)
-                args.eo_tolerance = trial.suggest_categorical("eo_tolerance", constraint_sgc_optimize_eo_tolerance)
-                args.cf_tolerance = trial.suggest_categorical("cf_tolerance", constraint_sgc_optimize_cf_tolerance)
-                args.penalty_factor = trial.suggest_categorical("penalty_factor", constraint_sgc_optimize_penalty_factor)
-                args.update_weight = trial.suggest_categorical("update_weight", constraint_sgc_optimize_update_weight)  
-
-            elif args.inprocessing == 'constraint_vanilla':
-                # optimize param
-                constraint_vanilla_optimize_hidden = params["constraint_vanilla"]["optimize_param"]["hidden"]
-                constraint_vanilla_optimize_gnn_layer_size = params["constraint_vanilla"]["optimize_param"]["gnn_layer_size"]
-                constraint_vanilla_optimize_gnn_hidden = params["constraint_vanilla"]["optimize_param"]["gnn_hidden"]
-                constraint_vanilla_optimize_cls_layer_size = params["constraint_vanilla"]["optimize_param"]["cls_layer_size"]
-                constraint_vanilla_optimize_lr = params["constraint_vanilla"]["optimize_param"]["lr"]
-                constraint_vanilla_optimize_weight_decay = params["constraint_vanilla"]["optimize_param"]["weight_decay"]
-                constraint_vanilla_optimize_sp_tolerance = params["constraint_vanilla"]["optimize_param"]["sp_tolerance"]
-                constraint_vanilla_optimize_eo_tolerance = params["constraint_vanilla"]["optimize_param"]["eo_tolerance"]
-                constraint_vanilla_optimize_cf_tolerance = params["constraint_vanilla"]["optimize_param"]["cf_tolerance"]
-                constraint_vanilla_optimize_penalty_factor = params["constraint_vanilla"]["optimize_param"]["penalty_factor"]  
-                constraint_vanilla_optimize_update_weight = params["constraint_vanilla"]["optimize_param"]["update_weight"]                
-                
-                args.hidden = trial.suggest_categorical("hidden", constraint_vanilla_optimize_hidden)
-                args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", constraint_vanilla_optimize_gnn_layer_size)
-                args.gnn_hidden = trial.suggest_categorical("gnn_hidden", constraint_vanilla_optimize_gnn_hidden)
-                args.cls_layer_size = trial.suggest_categorical("cls_layer_size", constraint_vanilla_optimize_cls_layer_size)
-                args.lr = trial.suggest_categorical("lr", constraint_vanilla_optimize_lr)
-                args.weight_decay = trial.suggest_categorical("weight_decay", constraint_vanilla_optimize_weight_decay)
-                args.sp_tolerance = trial.suggest_categorical("sp_tolerance", constraint_vanilla_optimize_sp_tolerance)
-                args.eo_tolerance = trial.suggest_categorical("eo_tolerance", constraint_vanilla_optimize_eo_tolerance)
-                args.cf_tolerance = trial.suggest_categorical("cf_tolerance", constraint_vanilla_optimize_cf_tolerance)
-                args.penalty_factor = trial.suggest_categorical("penalty_factor", constraint_vanilla_optimize_penalty_factor)
-                args.update_weight = trial.suggest_categorical("update_weight", constraint_vanilla_optimize_update_weight)   
-
             t_total = time.time()
             all_metrics, best_eval_output =\
                 run_trial(data, args, args.trial_count)
@@ -482,30 +430,7 @@ def run(data, args):
             args.hops = hparams['hops']
             args.pe_dim = hparams['pe_dim']
             args.cliques = hparams['cliques']     
-            
-        elif args.inprocessing == 'constraint_sgc':
-            args.lr = hparams['lr']
-            args.weight_decay = hparams['weight_decay']
-            args.degree = hparams['degree']
-            args.weight_decay = hparams['weight_decay']            
-            args.sp_tolerance = hparams['sp_tolerance']  
-            args.eo_tolerance = hparams['eo_tolerance']  
-            args.cf_tolerance = hparams['cf_tolerance']  
-            args.penalty_factor = hparams['penalty_factor']  
-            args.update_weight = hparams['update_weight']                 
-            
-        elif args.inprocessing == 'constraint_vanilla':
-            args.hidden = hparams['hidden']
-            args.gnn_layer_size = hparams['gnn_layer_size']
-            args.gnn_hidden = hparams['gnn_hidden']
-            args.cls_layer_size = hparams['cls_layer_size']
-            args.lr = hparams['lr']
-            args.weight_decay = hparams['weight_decay']            
-            args.sp_tolerance = hparams['sp_tolerance']  
-            args.eo_tolerance = hparams['eo_tolerance']  
-            args.cf_tolerance = hparams['cf_tolerance']  
-            args.penalty_factor = hparams['penalty_factor']  
-            args.update_weight = hparams['update_weight']                     
+                          
 
         t_total = time.time()
         all_metrics, best_output = run_trial(data, args, args.trial_count)
