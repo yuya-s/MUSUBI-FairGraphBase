@@ -3,6 +3,8 @@
 FairGraphBase is a benchmarking framework for fairness-aware graph neural networks.
 This supports (1) in-processing and pre-processing methods, (2) their combinations, and (3) different early stopping conditions.
 
+- version 0.1: Inisital version
+
 <div  align="center">    
 <img src="./docs/musubi.png" width=500  alt="musubi" align=center />
 </div>
@@ -75,4 +77,5 @@ NVIDIA Quadro RTX 8000
 ## Future extension
 - Add other methods
 - Add other fairness metrics
+
 
