@@ -1,0 +1,39 @@
+Method	vanilla										
+Encoder	gcn										
+Dataset	pokec_n										
+Metrics	acc										
+											
+											
+no	ACC	AUC	F1	SP	EO	GPU Usage	Parameter Num	Train time	Total time		
+1	0.6750202101859337	0.7107948002831215	0.5897959183673469	0.068977014	0.084893048	437	20257	2.259573289326259	47.53077936172485		
+2	0.6459175424413904	0.6685248848798335	0.5399159663865546	0.10561625455242474	0.16741818770925587	441	20257	2.068546397345407	87.11416053771973		
+3	0.6839126919967664	0.6959034169046863	0.5736095965103599	0.095204307	0.14517195767195762	443	23089	2.245221153138176	141.86305809020996		
+4	0.6742118027485853	0.6526300236406619	0.47182175622542594	0.071531125	0.164897428	447	23089	2.2457850461914424	189.2378683		
+5	0.6475343573160873	0.6527636495881011	0.5219298245614035	0.052995877	0.082089343	449	67329	2.2092603955950056	232.74014616012573		
+mean	66.53 +- 0.02	67.61 +- 0.05	53.94 +- 0.17	7.89 +- 0.04	12.89 +- 0.14	443.4	30804.2	2.205677256319258	139.69720249176027		
+trial 1											
+ConfusionMatrics(All)	Prediction 0	Prediction 1	sum	ConfusionMatrics(sens0)	Prediction 0	Prediction 1	sum	ConfusionMatrics(sens1)	Prediction 0	Prediction 1	sum
+Actual 0	546	135	681	Actual 0	378	90	468	Actual 0	168	45	213
+Actual 1	267	289	556	Actual 1	180	172	352	Actual 1	87	117	204
+sum	813	424	1237	sum	558	262	820	sum	255	162	417
+trial 2											
+ConfusionMatrics(All)	Prediction 0	Prediction 1	sum	ConfusionMatrics(sens0)	Prediction 0	Prediction 1	sum	ConfusionMatrics(sens1)	Prediction 0	Prediction 1	sum
+Actual 0	542	122	664	Actual 0	365	73	438	Actual 0	177	49	226
+Actual 1	316	257	573	Actual 1	229	147	376	Actual 1	87	110	197
+sum	858	379	1237	sum	594	220	814	sum	264	159	423
+trial 3											
+ConfusionMatrics(All)	Prediction 0	Prediction 1	sum	ConfusionMatrics(sens0)	Prediction 0	Prediction 1	sum	ConfusionMatrics(sens1)	Prediction 0	Prediction 1	sum
+Actual 0	583	102	685	Actual 0	385	63	448	Actual 0	198	39	237
+Actual 1	289	263	552	Actual 1	195	141	336	Actual 1	94	122	216
+sum	872	365	1237	sum	580	204	784	sum	292	161	453
+trial 4											
+ConfusionMatrics(All)	Prediction 0	Prediction 1	sum	ConfusionMatrics(sens0)	Prediction 0	Prediction 1	sum	ConfusionMatrics(sens1)	Prediction 0	Prediction 1	sum
+Actual 0	654	66	720	Actual 0	422	42	464	Actual 0	232	24	256
+Actual 1	337	180	517	Actual 1	236	96	332	Actual 1	101	84	185
+sum	991	246	1237	sum	658	138	796	sum	333	108	441
+trial 5											
+ConfusionMatrics(All)	Prediction 0	Prediction 1	sum	ConfusionMatrics(sens0)	Prediction 0	Prediction 1	sum	ConfusionMatrics(sens1)	Prediction 0	Prediction 1	sum
+Actual 0	563	111	674	Actual 0	380	71	451	Actual 0	183	40	223
+Actual 1	325	238	563	Actual 1	224	146	370	Actual 1	101	92	193
+sum	888	349	1237	sum	604	217	821	sum	284	132	416
+
