@@ -73,6 +73,22 @@ def make_train_val_test_indexes(args, runs, data_dir, sens, labels_np):
 
     return train_masks, val_masks, test_masks, idx_trains, idx_vals, idx_tests
 
+# def randomize_train_sens(sens, idx_train, seed=None):
+#     if seed is not None:
+#         np.random.seed(seed)
+
+#     sens = sens.cpu().numpy()
+#     sens_rand = sens.copy()
+
+#     train_sens = sens_rand[idx_train]
+
+#     shuffled = train_sens.copy()
+#     np.random.shuffle(shuffled)
+
+#     sens_rand[idx_train] = shuffled
+
+#     return sens_rand
+
 def mx_to_torch_sparse_tensor(sparse_mx, is_sparse=False, return_tensor_sparse=True):
     if not is_sparse:
         sparse_mx = sp.coo_matrix(sparse_mx)
@@ -776,6 +792,7 @@ def get_dataset(dataname, runs, args):
     adj_norm_sp, edge_index, features, labels, train_mask, val_mask, test_mask, sens, adj, idx_trains, idx_vals, idx_tests = load(
         args, dataset=dataname, runs=runs)
 
+
     if(dataname == 'credit'):
         sens_idx = 1
     elif(dataname == 'bail' or dataname == 'german'):
@@ -792,122 +809,8 @@ def get_dataset(dataname, runs, args):
         norm_features = feature_norm(features)
         features = norm_features
 
-    # BIND
-    # if args.preprocessing == "bind":
-    #     new_adj_list = []
-    #     new_features_list = []
-    #     new_edge_index_list = []
-    #     new_adj_norm_sp_list = []
-    #     new_labels_list = []
-    #     new_train_mask_list = []
-    #     new_val_mask_list = []
-    #     new_test_bask_list = []
-    #     new_sens_list = []
-    #
-    #     if not os.path.exists(f"data/{dataname}/newfeatures_{args.preprocessing}_del{args.bind_del_rate}_0.pt"):
-    #         for trial in range(runs):
-    #
-    #             # (BIND) bind_train.py
-    #             train_bind(trial, args, dataname, adj, features, labels, idx_trains[trial], idx_vals[trial],
-    #                        idx_tests[trial], sens,
-    #                        need_norm_features=False)
-    #
-    #             # (BIND) bind_influence_computate.py
-    #             compute_influence_bind(trial, args, dataname, adj, features, labels, idx_trains[trial], idx_vals[trial],
-    #                                    idx_tests[trial], sens,
-    #                                    need_norm_features=False)
-    #
-    #             # (BIND) bind_remove.py
-    #             newadj, newfeatures, newlabels, newidx_train, newidx_val, newidx_test, newsens \
-    #                 = remove_bind(trial, args, dataname, adj, features, labels, idx_trains[trial], idx_vals[trial],
-    #                               idx_tests[trial], sens,
-    #                               need_norm_features=False, bind_del_rate=args.bind_del_rate)
-    #
-    #             newtrain_mask = index_to_mask(len(newlabels), torch.LongTensor(newidx_train))
-    #             newval_mask = index_to_mask(len(newlabels), torch.LongTensor(newidx_val))
-    #             newtest_mask = index_to_mask(len(newlabels), torch.LongTensor(newidx_test))
-    #
-    #             newadj_norm = sys_normalized_adjacency(newadj)
-    #             newadj_norm_sp = sparse_mx_to_torch_sparse_tensor(newadj_norm)
-    #             newedge_index, _ = from_scipy_sparse_matrix(newadj)
-    #
-    #
-    #             torch.save(newfeatures,
-    #                        f"data/{dataname}/newfeatures_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #
-    #             torch.save(newedge_index,
-    #                        f"data/{dataname}/newedge_index_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #
-    #             torch.save(newlabels,
-    #                        f"data/{dataname}/newlabels_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #
-    #             torch.save(newtrain_mask,
-    #                        f"data/{dataname}/newtrain_mask_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #
-    #             torch.save(newval_mask,
-    #                        f"data/{dataname}/newval_mask_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #
-    #             torch.save(newtest_mask,
-    #                        f"data/{dataname}/newtest_mask_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #
-    #             torch.save(newsens,
-    #                        f"data/{dataname}/newsens_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #
-    #             new_adj_list.append(newadj)
-    #             new_features_list.append(newfeatures)
-    #             new_edge_index_list.append(newedge_index)
-    #             new_adj_norm_sp_list.append(newadj_norm_sp)
-    #             new_labels_list.append(newlabels)
-    #             new_train_mask_list.append(newtrain_mask)
-    #             new_val_mask_list.append(newval_mask)
-    #             new_test_bask_list.append(newtest_mask)
-    #             new_sens_list.append(newsens)
-    #
-    #     else:
-    #         for trial in range(runs):
-    #             newfeatures = torch.load(f"data/{dataname}/newfeatures_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #             newedge_index = torch.load(f"data/{dataname}/newedge_index_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #             newlabels = torch.load(f"data/{dataname}/newlabels_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #             newtrain_mask = torch.load(f"data/{dataname}/newtrain_mask_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #             newval_mask = torch.load(f"data/{dataname}/newval_mask_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #             newtest_mask = torch.load(f"data/{dataname}/newtest_mask_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #             newsens = torch.load(f"data/{dataname}/newsens_{args.preprocessing}_del{args.bind_del_rate}_{trial}.pt")
-    #
-    #             newedge_index_np = newedge_index.cpu().numpy()
-    #             newlabels_np = newlabels.cpu().numpy()
-    #
-    #             adj = sp.coo_matrix((np.ones(newedge_index_np.shape[1]), (newedge_index_np[0, :], newedge_index_np[1, :])),
-    #                                 shape=(newlabels_np.shape[0], newlabels_np.shape[0]),
-    #                                 dtype=np.float32)
-    #
-    #             adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj)
-    #             adj = adj + sp.eye(adj.shape[0])
-    #             adj_norm = sys_normalized_adjacency(adj)
-    #             adj_norm_sp = sparse_mx_to_torch_sparse_tensor(adj_norm)
-    #             newadj = adj
-    #             newadj_norm_sp = adj_norm_sp
-    #
-    #             new_adj_list.append(newadj)
-    #             new_features_list.append(newfeatures)
-    #             new_edge_index_list.append(newedge_index)
-    #             new_adj_norm_sp_list.append(newadj_norm_sp)
-    #             new_labels_list.append(newlabels)
-    #             new_train_mask_list.append(newtrain_mask)
-    #             new_val_mask_list.append(newval_mask)
-    #             new_test_bask_list.append(newtest_mask)
-    #             new_sens_list.append(newsens)
-    #
-    #
-    #     return Data(adj=adj, x=features, edge_index=edge_index, adj_norm_sp=adj_norm_sp, y=labels.float(),
-    #                 train_mask=new_train_mask_list, val_mask=new_val_mask_list, test_mask=new_test_bask_list, sens=sens,
-    #                 adj_list = new_adj_list, x_list = new_features_list, edge_index_list = new_edge_index_list,
-    #                 adj_norm_sp_list = new_adj_norm_sp_list, y_list = new_labels_list, sens_list = new_sens_list
-    #                 ), sens_idx, x_min, x_max
 
-    #else:
     return Data(adj=adj, x=features, edge_index=edge_index, adj_norm_sp=adj_norm_sp, y=labels.float(),
                     train_mask=train_mask, val_mask=val_mask, test_mask=test_mask, sens=sens, dataset=dataname
                     ), sens_idx, x_min, x_max
-#train_bind(trial, args, dataname, adj, features, labels, idx_trains[trial], idx_vals[trial],
-    #                        idx_tests[trial], sens,
-    #                        need_norm_features=False)
+

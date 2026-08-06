@@ -8,7 +8,7 @@ from torch.nn.utils import spectral_norm
 from models.model import Encoder, Classifier
 import torch.nn.functional as F
 
-class NIFTY_GAT(torch.nn.Module):
+class NIFTY_ALL(torch.nn.Module):
     def __init__(self,
                  seed,
                  num_features,
@@ -28,7 +28,7 @@ class NIFTY_GAT(torch.nn.Module):
         torch.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
         torch.backends.cudnn.deterministic = True
-        super(NIFTY_GAT, self).__init__()
+        super(NIFTY_ALL, self).__init__()
 
         self.device = device
 

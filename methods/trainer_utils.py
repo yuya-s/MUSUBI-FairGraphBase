@@ -1,6 +1,5 @@
 from utils.evaluation import calc_metrics, calc_test_cm, calc_sens_test_metrics
 
-
 class All_metrics:
     def __init__(self, acc, auc, f1, parity, equality,
                  recall, precision, cm, cm_sens0, cm_sens1,
@@ -32,29 +31,38 @@ class Early_stopper:
         self.trial = trial
         self.model_param_cnt = model_param_cnt
 
-        self.best_val_tradeoff = -1
+        self.check_val = 0
+        self.best_val_tradeoff = float('-inf')
         self.early_stop_count = 0
         self.epoch = 0
 
     def check_stop(self, output, data):
         accs, auc_rocs, F1s, paritys, equalitys = calc_metrics(output, data, self.trial-1)
         if self.metrics == 'acc':
-            check_val = accs['val']
+            self.check_val = accs['val']
         elif self.metrics == 'f1':
-            check_val = F1s['val']
+            self.check_val = F1s['val']
         elif self.metrics == 'alpha':
-            check_val = F1s['val'] + accs['val'] - self.alpha * (paritys['val'] + equalitys['val'])
+            self.check_val = F1s['val'] + accs['val'] - self.alpha * (paritys['val'] + equalitys['val'])
 
-        if check_val >= self.best_val_tradeoff:
-            self.test_acc = accs['test']
-            self.test_auc_roc = auc_rocs['test']
-            self.test_f1 = F1s['test']
-            self.parity = paritys['test']
-            self.equality = equalitys['test']
-            self.best_val_tradeoff = check_val
+        if self.check_val >= self.best_val_tradeoff:
+            self.best_val_tradeoff = self.check_val
             self.early_stop_count = 0
             self.best_epoc = self.epoch
             self.best_output = output
+            #self.best_embedding = embedding
+            self.test_acc = accs['test']
+            self.test_auc_roc = auc_rocs['test']
+            self.test_f1 = F1s['test']
+            self.test_parity = paritys['test']
+            self.test_equality = equalitys['test']
+
+            self.val_acc = accs['val']   
+            self.val_auc_roc = auc_rocs['val']
+            self.val_f1 = F1s['val']
+            self.val_parity = paritys['val']
+            self.val_equality = equalitys['val']
+
         else:
             #print(self.early_stop_count)
             #print(check_val)
@@ -72,11 +80,16 @@ class Early_stopper:
         return [val_metrics, test_metrics]
 
     def get_all_metrics_sub(self, data, is_val):
+        
         recall, precision, cm, cm_sens0, cm_sens1 = calc_test_cm(self.best_output, data, self.trial-1, is_val)
         ACC_sens0, AUCROC_sens0, F1_sens0, ACC_sens1, AUCROC_sens1, F1_sens1 = \
             calc_sens_test_metrics(self.best_output, data, self.trial-1, is_val)
 
-        return All_metrics(self.test_acc, self.test_auc_roc, self.test_f1, self.parity, self.equality,
-        recall, precision, cm, cm_sens0, cm_sens1,
-        ACC_sens0, AUCROC_sens0, F1_sens0, ACC_sens1, AUCROC_sens1, F1_sens1,
-        self.model_param_cnt)
+        if(is_val):
+            return All_metrics(self.val_acc, self.val_auc_roc, self.val_f1, self.val_parity, self.val_equality, 
+            recall, precision, cm, cm_sens0, cm_sens1,
+            ACC_sens0, AUCROC_sens0, F1_sens0, ACC_sens1, AUCROC_sens1, F1_sens1, self.model_param_cnt)
+        else:
+            return All_metrics(self.test_acc, self.test_auc_roc, self.test_f1, self.test_parity, self.test_equality, 
+            recall, precision, cm, cm_sens0, cm_sens1,
+            ACC_sens0, AUCROC_sens0, F1_sens0, ACC_sens1, AUCROC_sens1, F1_sens1, self.model_param_cnt)   

@@ -9,7 +9,7 @@ from tqdm import tqdm
 import torch.nn.functional as F
 #from triton.ops.matmul_perf_model import early_config_prune
 
-from models.model_nifty import NIFTY_GAT
+from models.model_nifty import NIFTY_ALL
 from methods.trainer_utils import Early_stopper
 from utils.utils import get_gpu_info, params_count
 
@@ -44,7 +44,7 @@ def run_trial_nifty(data, args, trial=1):
     val_x_1 = drop_feature(features.to(device), drop_feature_rate_1, sens_idx, sens_flag=False)
     val_x_2 = drop_feature(features.to(device), drop_feature_rate_2, sens_idx)
 
-    model = NIFTY_GAT(
+    model = NIFTY_ALL(
                     seed = int(args.seed + trial),
                     num_features=features.shape[1],
                     num_hidden = args.hidden,

@@ -32,7 +32,7 @@ def run_trial_fairdrop(data, args, trial=1):
     src, dst = edge_index
     y_aux = (sens[src] != sens[dst])
     E = y_aux.size(0)
-    randomizer = torch.rand(epochs, E, device=device) < (0.5 + delta)
+
 
     model = Vanilla_GNN(
         encoder=args.encoder,
@@ -62,7 +62,9 @@ def run_trial_fairdrop(data, args, trial=1):
             sim_loss = 0
             model.train()
             optimizer_2.zero_grad()
-            keep = torch.where(randomizer[epoch], y_aux, ~y_aux)
+
+            randomizer = torch.rand(1, E, device=device) < (0.5 + delta)
+            keep = torch.where(randomizer[0], y_aux, ~y_aux)
             edge_index_1 = edge_index[:, keep]
             x_1 = features
 

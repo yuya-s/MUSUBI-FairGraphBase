@@ -62,17 +62,29 @@ def propagate2(x, edge_index):
     return scatter(out, edge_index[-1], dim=0, dim_size=x.size(0), reduce='add')
 
 
-def seed_everything(seed=0):
+def fix_seed(seed=42):
+    # random
     random.seed(seed)
+    # Numpy
+    np.random.seed(seed)
+    # Pytorch
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
-    np.random.seed(seed)
-    torch.backends.cudnn.allow_tf32 = False
-
-    os.environ['PYTHONHASHSEED'] = str(seed)
-    torch.backends.cudnn.deterministic = True
+    torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.benchmark = False
-    torch.backends.cudnn.enabled = True
+    torch.backends.cudnn.deterministic = True
+
+# def seed_everything(seed=0):
+#     random.seed(seed)
+#     torch.manual_seed(seed)
+#     torch.cuda.manual_seed(seed)
+#     np.random.seed(seed)
+#     torch.backends.cudnn.allow_tf32 = False
+
+#     os.environ['PYTHONHASHSEED'] = str(seed)
+#     torch.backends.cudnn.deterministic = True
+#     torch.backends.cudnn.benchmark = False
+#     torch.backends.cudnn.enabled = True
 
 
 def random_drop_edges(adj, drop_prob):

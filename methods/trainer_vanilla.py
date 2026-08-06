@@ -8,7 +8,8 @@ from tqdm import tqdm
 
 from models.model_vanilla import Vanilla_GNN
 from methods.trainer_utils import Early_stopper
-from utils.utils import get_gpu_info, params_count
+from utils.utils import get_gpu_info, params_count, fix_seed
+#from utils.dataset import randomize_train_sens
 
 
 def run_trial_vanilla(data, args, trial=1):
@@ -25,6 +26,10 @@ def run_trial_vanilla(data, args, trial=1):
     train_mask=data.train_mask[trial-1]
     val_mask = data.val_mask[trial-1]
     test_mask = data.test_mask[trial-1]
+
+    # if args.senserandom == True:
+    #     sens = randomize_train_sens(data.sens.cpu(), data.train_mask[trial-1].cpu().numpy(), seed=trial-1)
+    # else:
     sens = data.sens
 
     model = Vanilla_GNN(

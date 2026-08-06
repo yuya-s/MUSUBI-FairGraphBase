@@ -12,11 +12,11 @@ import scipy.sparse as sp
 from models.model import Encoder, Classifier
 from models.model_fairsin import FairSIN_MLP, MLP_discriminator
 from methods.trainer_utils import Early_stopper
-from utils.utils import get_gpu_info, seed_everything, params_count
+from utils.utils import get_gpu_info, fix_seed, params_count
 import torch.nn.functional as F
 
 def run_trial_fairsin(data, args, trial=1):
-    seed_everything(trial + args.seed)
+    fix_seed(trial + args.seed)
 
     train_mask=data.train_mask[trial-1]
     val_mask=data.val_mask[trial-1]

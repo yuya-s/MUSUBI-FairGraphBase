@@ -56,15 +56,20 @@ class Encoder(torch.nn.Module):
         return x
 
 class GCN_encoder(nn.Module):
-    def __init__(self, num_features, hidden):
+    def __init__(self, num_features, hidden, dropout=0.5):
         super(GCN_encoder, self).__init__()
         self.conv1 = GCNConv(num_features, hidden, normalize=True)
-
+        self.transition = nn.Sequential(
+            nn.ReLU(),
+            nn.BatchNorm1d(hidden),
+            nn.Dropout(p=dropout)
+        )
     def reset_parameters(self):
         self.conv1.reset_parameters()
 
     def forward(self, x, edge_index):
         x = self.conv1(x, edge_index)
+        x = self.transition(x)
         return x
 
 
