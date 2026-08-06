@@ -16,11 +16,11 @@ The FairGraphBase codebase uses the following dependencies:
 
 ## Supported Models for group fairness
 - Inprocessing<br>
-Vanilla, FairDrop ([\[TAI 2021\]](https://arxiv.org/pdf/2104.14210)), FairGNN ([\[WSDM 2021\]](https://arxiv.org/pdf/2009.01454.pdf)), NIFTY ([\[UAI 2021\]](https://arxiv.org/pdf/2102.13186.pdf)), FairSIN ([\[AAAI 2024\]](https://arxiv.org/pdf/2403.12474)), FairGB ([\[KDD 2024\]](https://dl.acm.org/doi/abs/10.1145/3637528.3671826))
+Vanilla, FairDrop ([\[TAI 2021\]](https://arxiv.org/pdf/2104.14210)), FairGNN ([\[WSDM 2021\]](https://arxiv.org/pdf/2009.01454.pdf)), NIFTY ([\[UAI 2021\]](https://arxiv.org/pdf/2102.13186.pdf)), FairSIN ([\[AAAI 2024\]](https://arxiv.org/pdf/2403.12474)), FairGB ([\[KDD 2024\]](https://dl.acm.org/doi/abs/10.1145/3637528.3671826)), FairGT ([\[IJCAI 2024\]](https://dl.acm.org/doi/10.24963/ijcai.2024/50)), DABGNN ([\[AAAI 2025\]](https://arxiv.org/abs/2408.12875))
 - Preprocessing<br>
 Undersampling, FairDrop ([\[TAI 2021\]](https://arxiv.org/pdf/2104.14210)), BIND ([\[AAAI 2023\]](https://arxiv.org/pdf/2211.14383))
 - Encoder<br> 
-GCN, GAT, SAGE, H2GCN
+GCN, GAT, SAGE, H2GCN, GraphTransformer (for FairGT)
 
 The difference between inprocessing and preprocessing FairDrop is dropping edges during epochs in inprocessing and dropping edges once before starting model training in preprocessing.
 
@@ -72,5 +72,5 @@ CSV files are generated at output directory
 NVIDIA Quadro RTX 8000
 
 ## Future extension
-- Add other methods, e.g., FairGT
+- Add other methods
 - Add other fairness metrics
