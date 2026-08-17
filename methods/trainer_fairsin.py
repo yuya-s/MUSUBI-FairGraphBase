@@ -169,8 +169,10 @@ def run_trial_fairsin(data, args, trial=1):
             with torch.no_grad():
                 h = encoder(data.x, data.edge_index)
                 output = classifier(h)
+                counter_h = encoder(data.counter_x.to(args.device), data.edge_index)
+                counter_output = classifier(counter_h)
 
-            if early_stopper.check_stop(output, data):
+            if early_stopper.check_stop(output, counter_output, data):
                 break
 
             end_time = time.time()

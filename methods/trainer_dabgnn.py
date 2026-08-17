@@ -25,6 +25,8 @@ def run_trial_dabgnn(data, args, trial=1):
     labels = data.y
     features = data.x
     features = features.to(device)       
+    counter_features = data.counter_x
+    counter_features = counter_features.to(device)
     edge_index  = data.edge_index
     knn_index = make_knn_edge_index(features.cpu().numpy(), args.k) 
     knn_index = knn_index.to(device)
@@ -108,11 +110,13 @@ def run_trial_dabgnn(data, args, trial=1):
             with torch.no_grad():
                 
                 cl_str, emb_str = model_str(edge_index)
+                counter_cl_str, counter_emb_str = model_str(edge_index)
                  
                 cl_atr, emb_atr = model_atr(features, knn_index)    
+                counter_cl_atr, counter_emb_atr = model_atr(counter_features, knn_index)
 
-                record_emb_str.store_best_emb(cl_str, data, emb_str)                                                       
-                record_emb_atr.store_best_emb(cl_atr, data, emb_atr)   
+                record_emb_str.store_best_emb(cl_str, counter_cl_str, data, emb_str, counter_emb_str)                                                       
+                record_emb_atr.store_best_emb(cl_atr, counter_cl_atr, data, emb_atr, counter_emb_atr)   
 
             end_time = time.time()
             train_time = end_time - start_time
@@ -122,6 +126,9 @@ def run_trial_dabgnn(data, args, trial=1):
         best_emb_str = record_emb_str.best_embedding.detach()
         best_emb_atr = record_emb_atr.best_embedding.detach()
         concat_emb = torch.cat((best_emb_str, best_emb_atr), dim=1) 
+        counter_emb_str = record_emb_str.counter_embedding.detach()
+        counter_emb_atr = record_emb_atr.counter_embedding.detach()
+        concat_counter_emb = torch.cat((counter_emb_str, counter_emb_atr), dim=1)
         
         for epoch2 in tqdm(range(epochs)): #forループの回数は調整が必要
             start_time = time.time()
@@ -149,8 +156,9 @@ def run_trial_dabgnn(data, args, trial=1):
             with torch.no_grad():
                 
                 cl_pot, emb_pot = model_pot(concat_emb)
+                counter_cl_pot, counter_emb_pot = model_pot(concat_counter_emb)
                  
-                record_emb_pot.store_best_emb(cl_pot, data, emb_pot)                                          
+                record_emb_pot.store_best_emb(cl_pot, counter_cl_pot, data, emb_pot, counter_emb_pot)                                          
  
             end_time = time.time()
             train_time = end_time - start_time
@@ -160,6 +168,8 @@ def run_trial_dabgnn(data, args, trial=1):
 
         best_emb_pot = record_emb_pot.best_embedding.detach()
         concat_emb_final = torch.cat((best_emb_str, best_emb_atr, best_emb_pot), dim=1)
+        counter_emb_pot = record_emb_pot.counter_embedding.detach()
+        concat_counter_emb_final = torch.cat((counter_emb_str, counter_emb_atr, counter_emb_pot), dim=1)
  
         for epoch3 in tqdm(range(epochs)):
             start_time = time.time()
@@ -178,8 +188,9 @@ def run_trial_dabgnn(data, args, trial=1):
             classifier_final.eval()
             with torch.no_grad():
                 cl_final = classifier_final(concat_emb_final)
+                counter_cl_final = classifier_final(concat_counter_emb_final)
                  
-            if early_stopper_final.check_stop(cl_final, data):
+            if early_stopper_final.check_stop(cl_final, counter_cl_final, data):
                 break                                    
  
             end_time = time.time()
@@ -296,9 +307,10 @@ class Store_embedding(Early_stopper):
     def __init__(self, stop_count, metrics, alpha, trial, model_param_cnt):
         super().__init__(stop_count, metrics, alpha, trial, model_param_cnt)
     
-    def store_best_emb(self, output, data, embedding): 
-        self.check_stop(output,data)
+    def store_best_emb(self, output, counter_output, data, embedding, counter_embedding): 
+        self.check_stop(output, counter_output, data)
         if self.check_val >= self.best_val_tradeoff:
             self.best_embedding = embedding
+            self.counter_embedding = counter_embedding
      
 

@@ -23,6 +23,7 @@ def run_trial_vanilla(data, args, trial=1):
     labels = data.y
     edge_index  = data.edge_index
     features = data.x
+    counter_features = data.counter_x
     train_mask=data.train_mask[trial-1]
     val_mask = data.val_mask[trial-1]
     test_mask = data.test_mask[trial-1]
@@ -74,6 +75,7 @@ def run_trial_vanilla(data, args, trial=1):
 
             model.eval()
             c_val = model(features, edge_index)
+            counter_c_val = model(counter_features, edge_index)
             val_loss = F.binary_cross_entropy_with_logits(c_val[val_mask],
                                                           labels[val_mask].unsqueeze(1).float().to(
                                                               device))
@@ -81,7 +83,7 @@ def run_trial_vanilla(data, args, trial=1):
             if epoch % 100 == 0:
                 print(f"[Train] Epoch {epoch}: train_c_loss: {cl_loss:.4f} | val_c_loss: {val_loss:.4f}")
 
-            if early_stopper.check_stop(c_val, data):
+            if early_stopper.check_stop(c_val, counter_c_val, data):
                 break
 
             end_time = time.time()

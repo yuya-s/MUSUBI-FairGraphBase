@@ -408,7 +408,6 @@ def load_pokec_large(args, dataset, runs=5):
     header = list(idx_features_labels.columns)
     header.remove("user_id")
 
-    header.remove(sens_attr)
     header.remove(predict_attr)
 
     features = sp.csr_matrix(idx_features_labels[header], dtype=np.float32)
@@ -444,8 +443,6 @@ def load_pokec_large(args, dataset, runs=5):
     train_masks, val_masks, test_masks, idx_trains, idx_vals, idx_tests = make_train_val_test_indexes(args, runs, data_path, sens, labels_np)
 
     sens = torch.FloatTensor(sens)
-
-    features = torch.cat([features, sens.unsqueeze(-1)], -1)
 
     adj_norm = sys_normalized_adjacency(adj)
     adj_norm_sp = sparse_mx_to_torch_sparse_tensor(adj_norm)
@@ -510,11 +507,15 @@ def load_google(args, dataset, runs=5):
 
     feats = np.array(feats, dtype=float)
 
-    sens = feats[:, 0]
+    gender1 = feats[:, 0]
+    gender2 = feats[:, 1]
     labels_np = feats[:, 164]
 
-    feats = np.concatenate([feats[:, :164], feats[:, 165:]], -1)
-    feats = feats[:, 1:]
+    sens = np.full(feats.shape[0], -1)
+    sens[gender1 == 1] = 1
+    sens[gender2 == 1] = 0
+
+    feats = np.delete(feats, [2, 164], axis=1)
 
     edges = np.array(edges)
 
@@ -683,6 +684,9 @@ def load_wikidata(args, dataset, runs=5):
     train_masks, val_masks, test_masks, idx_trains, idx_vals, idx_tests = make_train_val_test_indexes(args, runs, data_dir, sens, labels_np)
 
     sens = torch.FloatTensor(sens)
+    sens_1 = (sens == 1).float().unsqueeze(-1)
+    sens_0 = (sens == 0).float().unsqueeze(-1)
+    features = torch.cat([sens_1, sens_0, features], -1)
 
     return adj_norm_sp, edge_index, features, labels, train_masks, val_masks, test_masks, sens, adj, idx_trains, idx_vals, idx_tests
 
@@ -720,6 +724,9 @@ def load_dbpedia(args, dataset, runs=5):
     train_masks, val_masks, test_masks, idx_trains, idx_vals, idx_tests = make_train_val_test_indexes(args, runs, data_dir, sens, labels_np)
 
     sens = torch.FloatTensor(sens)
+    sens_1 = (sens == 1).float().unsqueeze(-1)
+    sens_0 = (sens == 0).float().unsqueeze(-1)
+    features = torch.cat([sens_1, sens_0, features], -1)
 
     return adj_norm_sp, edge_index, features, labels, train_masks, val_masks, test_masks, sens, adj, idx_trains, idx_vals, idx_tests
 
@@ -756,10 +763,45 @@ def load_yago(args, dataset, runs=5):
     train_masks, val_masks, test_masks, idx_trains, idx_vals, idx_tests = make_train_val_test_indexes(args, runs, data_dir, sens, labels_np)
 
     sens = torch.FloatTensor(sens)
+    sens_1 = (sens == 1).float().unsqueeze(-1)
+    sens_0 = (sens == 0).float().unsqueeze(-1)
+    features = torch.cat([sens_1, sens_0, features], -1)
 
     return adj_norm_sp, edge_index, features, labels, train_masks, val_masks, test_masks, sens, adj, idx_trains, idx_vals, idx_tests
 
 
+DATASET_SENS_IDX = {
+    'credit': 1,
+    'bail': 0,
+    'german': 0,
+    'pokec_z': 3,
+    'pokec_n': 3,
+    'pokec_z_large': 3,
+    'pokec_n_large': 3,
+    'google': [0, 1],
+    'aminer_l': None,
+    'aminer_s': None,
+    'wikidata': [0, 1],
+    'dbpedia': [0, 1],
+    'yago': [0, 1],
+}
+
+def make_counter_features(features, sens_idx):
+    counter_features = features.clone()
+
+    if sens_idx is None:
+        return counter_features
+
+    if isinstance(sens_idx, (list, tuple)):
+        col_a, col_b = sens_idx
+        tmp = counter_features[:, col_a].clone()
+        counter_features[:, col_a] = counter_features[:, col_b]
+        counter_features[:, col_b] = tmp
+        return counter_features
+    else:
+        counter_features[:, sens_idx] = 1 - counter_features[:, sens_idx]
+
+    return counter_features
 
 def get_dataset(dataname, runs, args):
     if(dataname == 'credit'):
@@ -792,25 +834,18 @@ def get_dataset(dataname, runs, args):
     adj_norm_sp, edge_index, features, labels, train_mask, val_mask, test_mask, sens, adj, idx_trains, idx_vals, idx_tests = load(
         args, dataset=dataname, runs=runs)
 
-
-    if(dataname == 'credit'):
-        sens_idx = 1
-    elif(dataname == 'bail' or dataname == 'german'):
-        sens_idx = 0
-    elif(dataname == 'region_job' or dataname == 'region_job_2'):
-        sens_idx = 3
-    else:
-        sens_idx = None
+    sens_idx = DATASET_SENS_IDX.get(dataname)
 
     x_max, x_min = torch.max(features, dim=0)[
         0], torch.min(features, dim=0)[0]
 
-    if(dataname != 'german'):
-        norm_features = feature_norm(features)
-        features = norm_features
+    counter_features = make_counter_features(features, sens_idx)
 
+    if(dataname != 'german'):
+        features = feature_norm(features)
+        counter_features = feature_norm(counter_features)
 
     return Data(adj=adj, x=features, edge_index=edge_index, adj_norm_sp=adj_norm_sp, y=labels.float(),
-                    train_mask=train_mask, val_mask=val_mask, test_mask=test_mask, sens=sens, dataset=dataname
-                    ), sens_idx, x_min, x_max
+                train_mask=train_mask, val_mask=val_mask, test_mask=test_mask, sens=sens, dataset=dataname, 
+                counter_x=counter_features), sens_idx, x_min, x_max
 

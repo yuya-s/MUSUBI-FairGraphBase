@@ -3,20 +3,29 @@ import torch
 from sklearn.metrics import f1_score, roc_auc_score, accuracy_score, recall_score, precision_score, confusion_matrix
 import numpy as np
 
-def fair_metric(pred, labels, sens):
+def fair_metric(pred, cf_pred, labels, sens):
     idx_s0 = sens == 0
     idx_s1 = sens == 1
     idx_s0_y1 = np.bitwise_and(idx_s0, labels == 1)
     idx_s1_y1 = np.bitwise_and(idx_s1, labels == 1)
+    idx_s0_y0 = np.bitwise_and(idx_s0, labels == 0)
+    idx_s1_y0 = np.bitwise_and(idx_s1, labels == 0)
+    sens_mask = (sens == 0) | (sens == 1)
     parity = abs(sum(pred[idx_s0]) / sum(idx_s0) - sum(pred[idx_s1]) / sum(idx_s1))
     equality = abs(sum(pred[idx_s0_y1]) / sum(idx_s0_y1) -
                    sum(pred[idx_s1_y1]) / sum(idx_s1_y1))
-    return parity.item(), equality.item()
+    equal_accuracy = abs((sum(pred[idx_s0_y1])+sum(1-pred[idx_s0_y0]))/sum(idx_s0) - (sum(pred[idx_s1_y1])+sum(1-pred[idx_s1_y0]))/sum(idx_s1))
+    pred_comparizon_arr = pred == cf_pred
+    counterfactual_fairness = 1 - np.count_nonzero(pred_comparizon_arr[sens_mask])/pred_comparizon_arr[sens_mask].size
 
-def calc_metrics(output, data, count):
+    return parity.item(), equality.item(), equal_accuracy.item(), counterfactual_fairness
+
+def calc_metrics(output, counter_output, data, count):
     pred_val = (output[data.val_mask[count]].squeeze() > 0).type_as(data.y)
     pred_test = (output[data.test_mask[count]].squeeze() > 0).type_as(data.y)
-    accs, auc_rocs, F1s, paritys, equalitys = {}, {}, {}, {}, {}
+    cf_pred_val = (counter_output[data.val_mask[count]].squeeze() > 0).type_as(data.y)
+    cf_pred_test = (counter_output[data.test_mask[count]].squeeze() > 0).type_as(data.y)
+    accs, auc_rocs, F1s, paritys, equalitys, equal_accuracys, counterfactual_fairness = {}, {}, {}, {}, {}, {}, {}
     accs['val'] = pred_val.eq(
         data.y[data.val_mask[count]]).sum().item() / data.val_mask[count].sum().item()
     accs['test'] = pred_test.eq(
@@ -29,12 +38,12 @@ def calc_metrics(output, data, count):
     auc_rocs['test'] = roc_auc_score(
         data.y[data.test_mask[count]].cpu().numpy(), output[data.test_mask[count]].detach().cpu().numpy())
 
-    paritys['val'], equalitys['val'] = fair_metric(pred_val.cpu().numpy(), data.y[data.val_mask[count]].cpu(
+    paritys['val'], equalitys['val'], equal_accuracys['val'], counterfactual_fairness['val'] = fair_metric(pred_val.cpu().numpy(), cf_pred_val.cpu().numpy(), data.y[data.val_mask[count]].cpu(
     ).numpy(), data.sens[data.val_mask[count]].cpu().numpy())
-    paritys['test'], equalitys['test'] = fair_metric(pred_test.cpu().numpy(), data.y[data.test_mask[count]].cpu(
+    paritys['test'], equalitys['test'], equal_accuracys['test'], counterfactual_fairness['test'] = fair_metric(pred_test.cpu().numpy(), cf_pred_test.cpu().numpy(), data.y[data.test_mask[count]].cpu(
     ).numpy(), data.sens[data.test_mask[count]].cpu().numpy())
 
-    return accs, auc_rocs, F1s, paritys, equalitys
+    return accs, auc_rocs, F1s, paritys, equalitys, equal_accuracys, counterfactual_fairness
 
 def calc_test_cm(output, data, count, is_val=False):
     if is_val:
@@ -119,11 +128,13 @@ def evaluate(x, classifier, hp, encoder, data, args, count):
     with torch.no_grad():
         h = encoder(data.x, data.edge_index)
         output = classifier(h)
+        counter_h = encoder(data.counter_x, data.edge_index)
+        counter_output = classifier(counter_h)
 
-    accs, auc_rocs, F1s, paritys, equalitys = calc_metrics(output, data, count)
+    accs, auc_rocs, F1s, paritys, equalitys, equal_accuracys, counterfactual_fairness = calc_metrics(output, counter_output, data, count)
 
     labels = data.y[data.test_mask[count]].cpu().numpy()
     pred = (output[data.test_mask[count]].squeeze() > 0).type_as(data.y).cpu().numpy()
     sens = data.sens[data.test_mask[count]].cpu().numpy()
 
-    return accs, auc_rocs, F1s, paritys, equalitys, labels, pred, sens
+    return accs, auc_rocs, F1s, paritys, equalitys, equal_accuracys, counterfactual_fairness, labels, pred, sens
