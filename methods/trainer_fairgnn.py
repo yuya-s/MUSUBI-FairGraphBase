@@ -13,6 +13,7 @@ from utils.utils import get_gpu_info, params_count
 
 def run_trial_fairgnn(data, args, trial=1):
     features = data.x
+    counter_features = data.counter_x
     labels = data.y
     edge_index = data.edge_index
     train_mask = data.train_mask[trial-1]
@@ -31,6 +32,7 @@ def run_trial_fairgnn(data, args, trial=1):
         idx_sens_val = val_mask   
     
     features = features.to(device)
+    counter_features = counter_features.to(device)
     labels = labels.to(device)
     edge_index = edge_index.to(device)
     train_mask = train_mask.to(device)
@@ -118,9 +120,9 @@ def run_trial_fairgnn(data, args, trial=1):
             model.eval()
 
             _, _,output = model(edge_index, features)
+            _, _, counter_output = model(edge_index, counter_features)
 
-
-            if early_stopper.check_stop(output, data):
+            if early_stopper.check_stop(output, counter_output, data):
                 break
 
             end_time = time.time()

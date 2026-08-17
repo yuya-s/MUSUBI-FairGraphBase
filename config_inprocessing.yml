@@ -52,6 +52,18 @@ fairsin:
         m_epochs: 20
         d: 'yes'
 
+fairgb:
+    optimize_param:
+        hidden: [16, 32, 64, 128, 256]
+        gnn_layer_size: [2]
+        gnn_hidden: [16, 32, 64, 128, 256]
+        cls_layer_size: [2]
+        e_lr: [0.01, 0.001, 0.0001, 0.00001]
+        c_lr: [0.01, 0.001, 0.0001, 0.00001]        
+        wd: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+        warmup: [5]
+        eta: [0.5]
+
 fairdrop:
     optimize_param:
         hidden: [16, 32, 64, 128, 256]

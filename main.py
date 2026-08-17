@@ -70,6 +70,11 @@ def get_run_preprocessing_func(preprocessing):
     elif preprocessing == 'fairdrop':
         return run_fairdrop
 
+def get_inprocessing_param(params, inprocessing, args, param_key):
+    if args.dataset == 'wikidata':
+        return params[inprocessing][args.encoder][param_key]
+    return params[inprocessing][param_key]
+
 def run(data, args):
     # objective start
     def objective(trial):
@@ -81,12 +86,13 @@ def run(data, args):
 
             if args.inprocessing == 'vanilla':
                 # optimize param
-                vanilla_optimize_hidden = params["vanilla"]["optimize_param"]["hidden"]
-                vanilla_optimize_gnn_layer_size = params["vanilla"]["optimize_param"]["gnn_layer_size"]
-                vanilla_optimize_gnn_hidden = params["vanilla"]["optimize_param"]["gnn_hidden"]
-                vanilla_optimize_cls_layer_size = params["vanilla"]["optimize_param"]["cls_layer_size"]
-                vanilla_optimize_lr = params["vanilla"]["optimize_param"]["lr"]
-                vanilla_optimize_weight_decay = params["vanilla"]["optimize_param"]["weight_decay"]
+                vanilla_optimize_param = get_inprocessing_param(params, "vanilla", args, "optimize_param")
+                vanilla_optimize_hidden = vanilla_optimize_param["hidden"]
+                vanilla_optimize_gnn_layer_size = vanilla_optimize_param["gnn_layer_size"]
+                vanilla_optimize_gnn_hidden = vanilla_optimize_param["gnn_hidden"]
+                vanilla_optimize_cls_layer_size = vanilla_optimize_param["cls_layer_size"]
+                vanilla_optimize_lr = vanilla_optimize_param["lr"]
+                vanilla_optimize_weight_decay = vanilla_optimize_param["weight_decay"]
 
                 args.hidden = trial.suggest_categorical("hidden", vanilla_optimize_hidden)
                 args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", vanilla_optimize_gnn_layer_size)
@@ -97,16 +103,17 @@ def run(data, args):
 
             elif args.inprocessing == 'fairgnn':
                 # optimize param
-                fairgnn_optimize_hidden = params["fairgnn"]["optimize_param"]["hidden"]
-                fairgnn_optimize_gnn_layer_size = params["fairgnn"]["optimize_param"]["gnn_layer_size"]
-                fairgnn_optimize_gnn_hidden = params["fairgnn"]["optimize_param"]["gnn_hidden"]
-                fairgnn_optimize_cls_layer_size = params["fairgnn"]["optimize_param"]["cls_layer_size"]
-                fairgnn_optimize_acc = params["fairgnn"]["optimize_param"]["acc"]
-                fairgnn_optimize_g_alpha = params["fairgnn"]["optimize_param"]["g_alpha"]
-                fairgnn_optimize_g_beta = params["fairgnn"]["optimize_param"]["g_beta"]
-                fairgnn_optimize_proj_hidden = params["fairgnn"]["optimize_param"]["proj_hidden"]
-                fairgnn_optimize_lr = params["fairgnn"]["optimize_param"]["lr"]
-                fairgnn_optimize_weight_decay = params["fairgnn"]["optimize_param"]["weight_decay"]
+                fairgnn_optimize_param = get_inprocessing_param(params, "fairgnn", args, "optimize_param")
+                fairgnn_optimize_hidden = fairgnn_optimize_param["hidden"]
+                fairgnn_optimize_gnn_layer_size = fairgnn_optimize_param["gnn_layer_size"]
+                fairgnn_optimize_gnn_hidden = fairgnn_optimize_param["gnn_hidden"]
+                fairgnn_optimize_cls_layer_size = fairgnn_optimize_param["cls_layer_size"]
+                fairgnn_optimize_acc = fairgnn_optimize_param["acc"]
+                fairgnn_optimize_g_alpha = fairgnn_optimize_param["g_alpha"]
+                fairgnn_optimize_g_beta = fairgnn_optimize_param["g_beta"]
+                fairgnn_optimize_proj_hidden = fairgnn_optimize_param["proj_hidden"]
+                fairgnn_optimize_lr = fairgnn_optimize_param["lr"]
+                fairgnn_optimize_weight_decay = fairgnn_optimize_param["weight_decay"]
 
                 args.hidden = trial.suggest_categorical("hidden", fairgnn_optimize_hidden)
                 args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", fairgnn_optimize_gnn_layer_size)
@@ -121,18 +128,19 @@ def run(data, args):
 
             elif args.inprocessing == 'nifty':
                 # optimize param
-                nifty_optimize_hidden = params["nifty"]["optimize_param"]["hidden"]
-                nifty_optimize_gnn_layer_size = params["nifty"]["optimize_param"]["gnn_layer_size"]
-                nifty_optimize_gnn_hidden = params["nifty"]["optimize_param"]["gnn_hidden"]
-                nifty_optimize_cls_layer_size = params["nifty"]["optimize_param"]["cls_layer_size"]
-                nifty_optimize_num_proj_hidden = params["nifty"]["optimize_param"]["num_proj_hidden"]
-                nifty_optimize_lr = params["nifty"]["optimize_param"]["lr"]
-                nifty_optimize_weight_decay = params["nifty"]["optimize_param"]["weight_decay"]
-                nifty_optimize_sim_coeff = params["nifty"]["optimize_param"]["sim_coeff"]
-                nifty_optimize_drop_edge_rate_1 = params["nifty"]["optimize_param"]["drop_edge_rate_1"]
-                nifty_optimize_drop_edge_rate_2 = params["nifty"]["optimize_param"]["drop_edge_rate_2"]
-                nifty_optimize_drop_feature_rate_1 = params["nifty"]["optimize_param"]["drop_feature_rate_1"]
-                nifty_optimize_drop_feature_rate_2 = params["nifty"]["optimize_param"]["drop_feature_rate_2"]
+                nifty_optimize_param = get_inprocessing_param(params, "nifty", args, "optimize_param")
+                nifty_optimize_hidden = nifty_optimize_param["hidden"]
+                nifty_optimize_gnn_layer_size = nifty_optimize_param["gnn_layer_size"]
+                nifty_optimize_gnn_hidden = nifty_optimize_param["gnn_hidden"]
+                nifty_optimize_cls_layer_size = nifty_optimize_param["cls_layer_size"]
+                nifty_optimize_num_proj_hidden = nifty_optimize_param["num_proj_hidden"]
+                nifty_optimize_lr = nifty_optimize_param["lr"]
+                nifty_optimize_weight_decay = nifty_optimize_param["weight_decay"]
+                nifty_optimize_sim_coeff = nifty_optimize_param["sim_coeff"]
+                nifty_optimize_drop_edge_rate_1 = nifty_optimize_param["drop_edge_rate_1"]
+                nifty_optimize_drop_edge_rate_2 = nifty_optimize_param["drop_edge_rate_2"]
+                nifty_optimize_drop_feature_rate_1 = nifty_optimize_param["drop_feature_rate_1"]
+                nifty_optimize_drop_feature_rate_2 = nifty_optimize_param["drop_feature_rate_2"]
 
                 args.hidden = trial.suggest_categorical("hidden", nifty_optimize_hidden)
                 args.gnn_layer_size = trial.suggest_categorical("gnn_layer_size", nifty_optimize_gnn_layer_size)
@@ -148,23 +156,25 @@ def run(data, args):
                 args.drop_feature_rate_2 = trial.suggest_categorical("drop_feature_rate_2", nifty_optimize_drop_feature_rate_2)
             elif args.inprocessing == 'fairsin':
                 # optimize param
-                fairsin_optimize_hidden = params["fairsin"]["optimize_param"]["hidden"]
-                fairsin_optimize_gnn_layer_size = params["fairsin"]["optimize_param"]["gnn_layer_size"]
-                fairsin_optimize_gnn_hidden = params["fairsin"]["optimize_param"]["gnn_hidden"]
-                fairsin_optimize_cls_layer_size = params["fairsin"]["optimize_param"]["cls_layer_size"]
-                fairsin_optimize_c_lr = params["fairsin"]["optimize_param"]["c_lr"]
-                fairsin_optimize_e_lr = params["fairsin"]["optimize_param"]["e_lr"]
-                fairsin_optimize_m_lr = params["fairsin"]["optimize_param"]["m_lr"]
-                fairsin_optimize_d_lr = params["fairsin"]["optimize_param"]["d_lr"]
-                fairsin_optimize_delta = params["fairsin"]["optimize_param"]["delta"]
-                fairsin_optimize_wd = params["fairsin"]["optimize_param"]["wd"]
-                #fairsin_optimize_dropout = params["fairsin"]["optimize_param"]["dropout"]
+                fairsin_optimize_param = get_inprocessing_param(params, "fairsin", args, "optimize_param")
+                fairsin_optimize_hidden = fairsin_optimize_param["hidden"]
+                fairsin_optimize_gnn_layer_size = fairsin_optimize_param["gnn_layer_size"]
+                fairsin_optimize_gnn_hidden = fairsin_optimize_param["gnn_hidden"]
+                fairsin_optimize_cls_layer_size = fairsin_optimize_param["cls_layer_size"]
+                fairsin_optimize_c_lr = fairsin_optimize_param["c_lr"]
+                fairsin_optimize_e_lr = fairsin_optimize_param["e_lr"]
+                fairsin_optimize_m_lr = fairsin_optimize_param["m_lr"]
+                fairsin_optimize_d_lr = fairsin_optimize_param["d_lr"]
+                fairsin_optimize_delta = fairsin_optimize_param["delta"]
+                fairsin_optimize_wd = fairsin_optimize_param["wd"]
+                #fairsin_optimize_dropout = fairsin_optimize_param["dropout"]
                 # fixed param
-                fairsin_fixed_param_epochs = params["fairsin"]["fixed_param"]["epochs"]
-                fairsin_fixed_param_d_epochs = params["fairsin"]["fixed_param"]["d_epochs"]
-                fairsin_fixed_param_c_epochs = params["fairsin"]["fixed_param"]["c_epochs"]
-                fairsin_fixed_param_m_epochs = params["fairsin"]["fixed_param"]["m_epochs"]
-                fairsin_fixed_param_d = params["fairsin"]["fixed_param"]["d"]
+                fairsin_fixed_param = get_inprocessing_param(params, "fairsin", args, "fixed_param")
+                fairsin_fixed_param_epochs = fairsin_fixed_param["epochs"]
+                fairsin_fixed_param_d_epochs = fairsin_fixed_param["d_epochs"]
+                fairsin_fixed_param_c_epochs = fairsin_fixed_param["c_epochs"]
+                fairsin_fixed_param_m_epochs = fairsin_fixed_param["m_epochs"]
+                fairsin_fixed_param_d = fairsin_fixed_param["d"]
 
                 args.hidden = trial.suggest_categorical('hidden', fairsin_optimize_hidden)
                 args.gnn_layer_size = trial.suggest_categorical('gnn_layer_size', fairsin_optimize_gnn_layer_size)
@@ -364,7 +374,8 @@ def run(data, args):
         data = data.to(args.device)
 
         # load config
-        with open('config_inprocessing.yml', 'r') as yml:
+        config_file = 'config_inprocessing_wikidata.yml' if args.dataset == 'wikidata' else 'config_inprocessing.yml'
+        with open(config_file, 'r') as yml:
             params = yaml.safe_load(yml)
 
 
@@ -423,11 +434,12 @@ def run(data, args):
             args.drop_feature_rate_1 = hparams['drop_feature_rate_1']
             args.drop_feature_rate_2 = hparams['drop_feature_rate_2']
         elif args.inprocessing == 'fairsin':
-            fairsin_fixed_param_epochs = params["fairsin"]["fixed_param"]["epochs"]
-            fairsin_fixed_param_d_epochs = params["fairsin"]["fixed_param"]["d_epochs"]
-            fairsin_fixed_param_c_epochs = params["fairsin"]["fixed_param"]["c_epochs"]
-            fairsin_fixed_param_m_epochs = params["fairsin"]["fixed_param"]["m_epochs"]
-            fairsin_fixed_param_d = params["fairsin"]["fixed_param"]["d"]
+            fairsin_fixed_param = get_inprocessing_param(params, "fairsin", args, "fixed_param")
+            fairsin_fixed_param_epochs = fairsin_fixed_param["epochs"]
+            fairsin_fixed_param_d_epochs = fairsin_fixed_param["d_epochs"]
+            fairsin_fixed_param_c_epochs = fairsin_fixed_param["c_epochs"]
+            fairsin_fixed_param_m_epochs = fairsin_fixed_param["m_epochs"]
+            fairsin_fixed_param_d = fairsin_fixed_param["d"]
 
             args.hidden = hparams['hidden']
             args.gnn_layer_size = hparams['gnn_layer_size']
@@ -585,23 +597,26 @@ def main(args):
         else:
             writer.writerow([''])
         writer.writerow([''])
-        writer.writerow(['no', 'ACC', 'AUC', 'F1', 'SP', 'EO', 'GPU Usage', 'Parameter Num', 'Train time', 'Total time'])
-        accs, aucs, f1s, paritys, equalitys, acc_sens0s, auc_sens0s, f1_sens0s, acc_sens1s, auc_sens1s, f1_sens1s,\
+        writer.writerow(['no', 'ACC', 'AUC', 'F1', 'SP', 'EO', 'EA', 'CF', 'GPU Usage', 'Parameter Num', 'Train time', 'Total time'])
+        accs, aucs, f1s, paritys, equalitys, equal_accuracys, counterfactual_fairnesss, acc_sens0s, auc_sens0s, f1_sens0s, acc_sens1s, auc_sens1s, f1_sens1s,\
             gpu_usages, parameter_nums, train_times, total_times = \
-            [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+            [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
         for i, trial_metrics in enumerate(all_trial_metrics):
             metrics = trial_metrics[0]
             gpu_usage = trial_metrics[1]
             train_time = trial_metrics[2]
             total_time = trial_metrics[3]
             writer.writerow(
-                [(i+1), metrics.acc, metrics.auc, metrics.f1, metrics.parity, metrics.equality, gpu_usage,
+                [(i+1), metrics.acc, metrics.auc, metrics.f1, metrics.parity, metrics.equality,
+                 metrics.equal_accuracy, metrics.counterfactual_fairness, gpu_usage,
                  metrics.model_param_cnt, train_time, total_time])
             accs.append(metrics.acc)
             aucs.append(metrics.auc)
             f1s.append(metrics.f1)
             paritys.append(metrics.parity)
             equalitys.append(metrics.equality)
+            equal_accuracys.append(metrics.equal_accuracy)
+            counterfactual_fairnesss.append(metrics.counterfactual_fairness)
             acc_sens0s.append(metrics.acc_sens0)
             auc_sens0s.append(metrics.auc_sens0)
             f1_sens0s.append(metrics.f1_sens0)
@@ -620,6 +635,8 @@ def main(args):
              f"{np.round(np.mean(f1s)*100, decimals=2)} +- {np.round(np.var(f1s)*100, decimals=2)}",
              f"{np.round(np.mean(paritys)*100, decimals=2)} +- {np.round(np.var(paritys)*100, decimals=2)}",
              f"{np.round(np.mean(equalitys)*100, decimals=2)} +- {np.round(np.var(equalitys)*100, decimals=2)}",
+             f"{np.round(np.mean(equal_accuracys)*100, decimals=2)} +- {np.round(np.var(equal_accuracys)*100, decimals=2)}",
+             f"{np.round(np.mean(counterfactual_fairnesss)*100, decimals=2)} +- {np.round(np.var(counterfactual_fairnesss)*100, decimals=2)}",
              np.mean(gpu_usages), np.mean(parameter_nums), np.mean(train_times), np.mean(total_times)])
 
         for i, trial_metrics in enumerate(all_trial_metrics):

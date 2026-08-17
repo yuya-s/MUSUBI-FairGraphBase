@@ -1,0 +1,217 @@
+vanilla:
+    gcn:
+        optimize_param:
+            hidden: [16, 32, 64, 128, 256]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32, 64, 128, 256]
+            cls_layer_size: [2]
+            lr: [0.01, 0.001, 0.0001, 0.00001]
+            weight_decay: [0.01, 0.05, 0.001, 0.002, 0.0001, 0.00001]
+    gat:
+        optimize_param:
+            hidden: [16, 32, 64]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32, 64]
+            cls_layer_size: [2]
+            lr: [0.01, 0.001, 0.0001, 0.00001]
+            weight_decay: [0.01, 0.05, 0.001, 0.002, 0.0001, 0.00001]
+    sage:
+        optimize_param:
+            hidden: [16, 32, 64]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32, 64]
+            cls_layer_size: [2]
+            lr: [0.01, 0.001, 0.0001, 0.00001]
+            weight_decay: [0.01, 0.05, 0.001, 0.002, 0.0001, 0.00001]
+    h2gcn:
+        optimize_param:
+            hidden: [16, 32]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32]
+            cls_layer_size: [2]
+            lr: [0.01, 0.001, 0.0001, 0.00001]
+            weight_decay: [0.01, 0.05, 0.001, 0.002, 0.0001, 0.00001]
+
+fairgnn:
+    gcn:
+        optimize_param:
+            hidden: [16, 32, 64, 128, 256]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32, 64, 128, 256]
+            cls_layer_size: [2]
+            acc: [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+            g_alpha: [1, 2, 3, 4, 5, 6, 7, 10, 20, 40, 50, 100]
+            g_beta: [1, 0.1, 0.01, 0.001, 0.0001]
+            proj_hidden: [4, 8, 16, 64, 128, 256]
+            lr: [0.01, 0.001, 0.0001, 0.00001]
+            weight_decay: [0.01, 0.001, 0.0001, 0.00001]
+    gat:
+        optimize_param:
+            hidden: [16, 32, 64]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32, 64]
+            cls_layer_size: [2]
+            acc: [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+            g_alpha: [1, 2, 3, 4, 5, 6, 7, 10, 20, 40, 50, 100]
+            g_beta: [1, 0.1, 0.01, 0.001, 0.0001]
+            proj_hidden: [4, 8, 16, 64, 128, 256]
+            lr: [0.01, 0.001, 0.0001, 0.00001]
+            weight_decay: [0.01, 0.001, 0.0001, 0.00001]
+    sage:
+        optimize_param:
+            hidden: [16, 32]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32]
+            cls_layer_size: [2]
+            acc: [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+            g_alpha: [1, 2, 3, 4, 5, 6, 7, 10, 20, 40, 50, 100]
+            g_beta: [1, 0.1, 0.01, 0.001, 0.0001]
+            proj_hidden: [4, 8, 16, 64, 128, 256]
+            lr: [0.01, 0.001, 0.0001, 0.00001]
+            weight_decay: [0.01, 0.001, 0.0001, 0.00001]
+    h2gcn:
+        optimize_param:
+            hidden: [16, 32]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32]
+            cls_layer_size: [2]
+            acc: [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+            g_alpha: [1, 2, 3, 4, 5, 6, 7, 10, 20, 40, 50, 100]
+            g_beta: [1, 0.1, 0.01, 0.001, 0.0001]
+            proj_hidden: [4, 8, 16, 64, 128, 256]
+            lr: [0.01, 0.001, 0.0001, 0.00001]
+            weight_decay: [0.01, 0.001, 0.0001, 0.00001]
+
+nifty:
+    gcn:
+        optimize_param:
+            hidden: [16, 32, 64]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32, 64]
+            cls_layer_size: [2]
+            num_proj_hidden: [4, 16, 32, 64]
+            lr: [0.01, 0.001, 0.0001, 0.00001]
+            weight_decay: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+            sim_coeff: [0.3, 0.4, 0.5, 0.6, 0.7]
+            drop_edge_rate_1: [0.1, 0.01, 0.001, 0.0001]
+            drop_edge_rate_2: [0.1, 0.01, 0.001, 0.0001]
+            drop_feature_rate_1: [0.1, 0.01, 0.001, 0.0001]
+            drop_feature_rate_2: [0.1, 0.01, 0.001, 0.0001]
+    gat:
+        optimize_param:
+            hidden: [16, 32]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32]
+            cls_layer_size: [2]
+            num_proj_hidden: [4, 16, 32]
+            lr: [0.01, 0.001, 0.0001, 0.00001]
+            weight_decay: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+            sim_coeff: [0.3, 0.4, 0.5, 0.6, 0.7]
+            drop_edge_rate_1: [0.1, 0.01, 0.001, 0.0001]
+            drop_edge_rate_2: [0.1, 0.01, 0.001, 0.0001]
+            drop_feature_rate_1: [0.1, 0.01, 0.001, 0.0001]
+            drop_feature_rate_2: [0.1, 0.01, 0.001, 0.0001]
+    sage:
+
+        optimize_param:
+            hidden: [16]
+            gnn_layer_size: [2]
+            gnn_hidden: [16]
+            cls_layer_size: [2]
+            num_proj_hidden: [4, 16]
+            lr: [0.01, 0.001, 0.0001, 0.00001]
+            weight_decay: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+            sim_coeff: [0.3, 0.4, 0.5, 0.6, 0.7]
+            drop_edge_rate_1: [0.1, 0.01, 0.001, 0.0001]
+            drop_edge_rate_2: [0.1, 0.01, 0.001, 0.0001]
+            drop_feature_rate_1: [0.1, 0.01, 0.001, 0.0001]
+            drop_feature_rate_2: [0.1, 0.01, 0.001, 0.0001]
+    h2gcn:
+
+        optimize_param:
+            hidden: [16]
+            gnn_layer_size: [2]
+            gnn_hidden: [16]
+            cls_layer_size: [2]
+            num_proj_hidden: [4, 16]
+            lr: [0.01, 0.001, 0.0001, 0.00001]
+            weight_decay: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+            sim_coeff: [0.3, 0.4, 0.5, 0.6, 0.7]
+            drop_edge_rate_1: [0.1, 0.01, 0.001, 0.0001]
+            drop_edge_rate_2: [0.1, 0.01, 0.001, 0.0001]
+            drop_feature_rate_1: [0.1, 0.01, 0.001, 0.0001]
+            drop_feature_rate_2: [0.1, 0.01, 0.001, 0.0001]
+
+fairsin:
+    gcn:
+        optimize_param:
+            hidden: [16, 32, 64, 128, 256]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32, 64, 128, 256]
+            cls_layer_size: [2]
+            c_lr: [0.01, 0.001, 0.0001, 0.00001]
+            e_lr: [0.01, 0.001, 0.0001, 0.00001]
+            m_lr: [0.01, 0.001, 0.0001, 0.00001]
+            d_lr: [0.01, 0.001, 0.0001, 0.00001]
+            delta: [0.5, 1, 5]
+            wd: [0.001, 0.0001, 0]
+        fixed_param:
+            epochs: 50
+            d_epochs: 10
+            c_epochs: 10
+            m_epochs: 20
+            d: 'yes'
+    gat:
+        optimize_param:
+            hidden: [16, 32, 64, 128]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32, 64, 128]
+            cls_layer_size: [2]
+            c_lr: [0.01, 0.001, 0.0001, 0.00001]
+            e_lr: [0.01, 0.001, 0.0001, 0.00001]
+            m_lr: [0.01, 0.001, 0.0001, 0.00001]
+            d_lr: [0.01, 0.001, 0.0001, 0.00001]
+            delta: [0.5, 1, 5]
+            wd: [0.001, 0.0001, 0]
+        fixed_param:
+            epochs: 50
+            d_epochs: 10
+            c_epochs: 10
+            m_epochs: 20
+            d: 'yes'
+    sage:
+        optimize_param:
+            hidden: [16, 32, 64, 128, 256]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32, 64, 128, 256]
+            cls_layer_size: [2]
+            c_lr: [0.01, 0.001, 0.0001, 0.00001]
+            e_lr: [0.01, 0.001, 0.0001, 0.00001]
+            m_lr: [0.01, 0.001, 0.0001, 0.00001]
+            d_lr: [0.01, 0.001, 0.0001, 0.00001]
+            delta: [0.5, 1, 5]
+            wd: [0.001, 0.0001, 0]
+        fixed_param:
+            epochs: 50
+            d_epochs: 10
+            c_epochs: 10
+            m_epochs: 20
+            d: 'yes'
+    h2gcn:
+        optimize_param:
+            hidden: [16, 32, 64, 128]
+            gnn_layer_size: [2]
+            gnn_hidden: [16, 32, 64, 128]
+            cls_layer_size: [2]
+            c_lr: [0.01, 0.001, 0.0001, 0.00001]
+            e_lr: [0.01, 0.001, 0.0001, 0.00001]
+            m_lr: [0.01, 0.001, 0.0001, 0.00001]
+            d_lr: [0.01, 0.001, 0.0001, 0.00001]
+            delta: [0.5, 1, 5]
+            wd: [0.001, 0.0001, 0]
+        fixed_param:
+            epochs: 50
+            d_epochs: 10
+            c_epochs: 10
+            m_epochs: 20
+            d: 'yes'

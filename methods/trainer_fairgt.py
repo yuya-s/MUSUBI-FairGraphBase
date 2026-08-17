@@ -23,8 +23,8 @@ def run_trial_fairgt(data, args, trial=1):
     labels = data.y
     features = data.x
     features = features.to(device)
-    # counter_features = args.counter_features
-    # counter_features = counter_features.to(device)     
+    counter_features = data.counter_x
+    counter_features = counter_features.to(device)
     adj_no_self_loop = data.adj - sp.eye(data.adj.shape[0])    
     sens = data.sens          
     train_mask=data.train_mask[trial-1]
@@ -45,9 +45,9 @@ def run_trial_fairgt(data, args, trial=1):
     processed_input = processed_input.to(device)
     args.in_dim = processed_input.shape[-1]
     
-    # counter_features_and_eign = torch.cat((counter_features, eignvector), dim=1)
-    # processed_counter_input = create_fair_input(new_adj, counter_features_and_eign, args.hops)
-    # processed_counter_input = processed_counter_input.to(device)            
+    counter_feature_and_eign = torch.cat((counter_features, eignvector), dim=1)
+    processed_counter_input = create_fair_input(new_adj, counter_feature_and_eign, args.hops)
+    processed_counter_input = processed_counter_input.to(device)            
     model = FairGT(vars(args)).to(device)
     
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)   
@@ -72,13 +72,10 @@ def run_trial_fairgt(data, args, trial=1):
 
             model.eval()
             c_val = model(processed_input)                                 
+            counter_c_val = model(processed_counter_input)
             cl_loss_val = F.binary_cross_entropy_with_logits(c_val[val_mask], labels[val_mask].unsqueeze(1).float().to(device))                                      
-            # counter_c_val = model(processed_counter_input)                           
 
-            # if early_stopper.check_stop(c_val, counter_c_val, data, cl_loss_val):
-            #     break
-
-            if early_stopper.check_stop(c_val, data):
+            if early_stopper.check_stop(c_val, counter_c_val, data):
                 break
 
             end_time = time.time()

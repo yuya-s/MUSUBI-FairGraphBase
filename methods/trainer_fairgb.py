@@ -21,6 +21,7 @@ def run_trial_fairgb(data, args, trial=1):
     orig_n = data.x.size(0)
     device = args.device
     features = data.x
+    counter_features = data.counter_x
     n_cls = data.y.max().int().item() + 1
     n_sen = data.sens.max().int().item() + 1
     index_list = torch.arange(len(data.y)).to(args.device)
@@ -124,7 +125,9 @@ def run_trial_fairgb(data, args, trial=1):
             with torch.no_grad():
                 h = model.encoder(data.x[:orig_n], data.edge_index)   
                 clean_val_out = model.c1(h)
-            if early_stopper.check_stop(clean_val_out, data):
+                counter_h = model.encoder(counter_features, data.edge_index)
+                counter_clean_val_out = model.c1(counter_h)
+            if early_stopper.check_stop(clean_val_out, counter_clean_val_out, data):
                 break
     all_metrics = early_stopper.get_all_metrics(data)
 
