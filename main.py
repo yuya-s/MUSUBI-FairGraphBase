@@ -630,13 +630,13 @@ def main(args):
 
         writer.writerow(
             ['mean',
-             f"{np.round(np.mean(accs)*100, decimals=2)} +- {np.round(np.var(accs)*100, decimals=2)}",
-             f"{np.round(np.mean(aucs)*100, decimals=2)} +- {np.round(np.var(aucs)*100, decimals=2)}",
-             f"{np.round(np.mean(f1s)*100, decimals=2)} +- {np.round(np.var(f1s)*100, decimals=2)}",
-             f"{np.round(np.mean(paritys)*100, decimals=2)} +- {np.round(np.var(paritys)*100, decimals=2)}",
-             f"{np.round(np.mean(equalitys)*100, decimals=2)} +- {np.round(np.var(equalitys)*100, decimals=2)}",
-             f"{np.round(np.mean(equal_accuracys)*100, decimals=2)} +- {np.round(np.var(equal_accuracys)*100, decimals=2)}",
-             f"{np.round(np.mean(counterfactual_fairnesss)*100, decimals=2)} +- {np.round(np.var(counterfactual_fairnesss)*100, decimals=2)}",
+             f"{np.round(np.mean(accs*100), decimals=2)} +- {np.round(np.var(accs*100), decimals=2)}",
+             f"{np.round(np.mean(aucs*100), decimals=2)} +- {np.round(np.var(aucs*100), decimals=2)}",
+             f"{np.round(np.mean(f1s*100), decimals=2)} +- {np.round(np.var(f1s*100), decimals=2)}",
+             f"{np.round(np.mean(paritys*100), decimals=2)} +- {np.round(np.var(paritys*100), decimals=2)}",
+             f"{np.round(np.mean(equalitys*100), decimals=2)} +- {np.round(np.var(equalitys*100), decimals=2)}",
+             f"{np.round(np.mean(equal_accuracys*100), decimals=2)} +- {np.round(np.var(equal_accuracys*100), decimals=2)}",
+             f"{np.round(np.mean(counterfactual_fairnesss*100), decimals=2)} +- {np.round(np.var(counterfactual_fairnesss*100), decimals=2)}",
              np.mean(gpu_usages), np.mean(parameter_nums), np.mean(train_times), np.mean(total_times)])
 
         for i, trial_metrics in enumerate(all_trial_metrics):
