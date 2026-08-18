@@ -39,9 +39,9 @@ We support the following graphs.
 |  **Google**+   |              290,468               |   3,601    |   2,532   |
 |  **AMiner-S**  |               39,424               |   52,460   |   5,694   |
 |  **AMiner-L**  |              129,726               |  591,039   |   5,694   |
-|  [\[**YAGO**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/yago.zip)  |              127,752               |  349,942   |   114   |
-|  [\[**DBpedia**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/dbpedia.zip)   |              152,035               |   426,851    |   478   |
-|  [\[**Wikidata**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/wikidata.zip)  |               1,108,347               |   4,857,725   |   415   |
+|  [\[**YAGO**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/yago.zip)  |              127,752               |  349,942   |   217   |
+|  [\[**DBpedia**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/dbpedia.zip)   |              152,035               |   426,851    |   480   |
+|  [\[**Wikidata**\]](https://www-bigdata.ist.osaka-u.ac.jp/media/zip/wikidata.zip)  |               1,108,347               |   4,857,725   |   417   |
 
 
 ## Argument options
