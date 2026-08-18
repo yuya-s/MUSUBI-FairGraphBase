@@ -628,15 +628,23 @@ def main(args):
             train_times.append(train_time)
             total_times.append(total_time)
 
+        accs_pct = np.array(accs) * 100
+        aucs_pct = np.array(aucs) * 100
+        f1s_pct = np.array(f1s) * 100
+        paritys_pct = np.array(paritys) * 100
+        equalitys_pct = np.array(equalitys) * 100
+        equal_accuracys_pct = np.array(equal_accuracys) * 100
+        counterfactual_fairnesss_pct = np.array(counterfactual_fairnesss) * 100
+
         writer.writerow(
             ['mean',
-             f"{np.round(np.mean(accs*100), decimals=2)} +- {np.round(np.var(accs*100), decimals=2)}",
-             f"{np.round(np.mean(aucs*100), decimals=2)} +- {np.round(np.var(aucs*100), decimals=2)}",
-             f"{np.round(np.mean(f1s*100), decimals=2)} +- {np.round(np.var(f1s*100), decimals=2)}",
-             f"{np.round(np.mean(paritys*100), decimals=2)} +- {np.round(np.var(paritys*100), decimals=2)}",
-             f"{np.round(np.mean(equalitys*100), decimals=2)} +- {np.round(np.var(equalitys*100), decimals=2)}",
-             f"{np.round(np.mean(equal_accuracys*100), decimals=2)} +- {np.round(np.var(equal_accuracys*100), decimals=2)}",
-             f"{np.round(np.mean(counterfactual_fairnesss*100), decimals=2)} +- {np.round(np.var(counterfactual_fairnesss*100), decimals=2)}",
+             f"{np.round(np.mean(accs_pct), decimals=2)} +- {np.round(np.var(accs_pct), decimals=2)}",
+             f"{np.round(np.mean(aucs_pct), decimals=2)} +- {np.round(np.var(aucs_pct), decimals=2)}",
+             f"{np.round(np.mean(f1s_pct), decimals=2)} +- {np.round(np.var(f1s_pct), decimals=2)}",
+             f"{np.round(np.mean(paritys_pct), decimals=2)} +- {np.round(np.var(paritys_pct), decimals=2)}",
+             f"{np.round(np.mean(equalitys_pct), decimals=2)} +- {np.round(np.var(equalitys_pct), decimals=2)}",
+             f"{np.round(np.mean(equal_accuracys_pct), decimals=2)} +- {np.round(np.var(equal_accuracys_pct), decimals=2)}",
+             f"{np.round(np.mean(counterfactual_fairnesss_pct), decimals=2)} +- {np.round(np.var(counterfactual_fairnesss_pct), decimals=2)}",
              np.mean(gpu_usages), np.mean(parameter_nums), np.mean(train_times), np.mean(total_times)])
 
         for i, trial_metrics in enumerate(all_trial_metrics):
