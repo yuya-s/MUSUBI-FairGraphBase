@@ -132,6 +132,7 @@ def run_trial_nifty(data, args, trial=1):
 
 
 def drop_feature(x, drop_prob, sens_idx):
+    x = x.clone()
     drop_mask = torch.empty(
         (x.size(1), ),
         dtype=torch.float32,
